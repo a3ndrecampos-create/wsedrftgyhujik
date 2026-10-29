@@ -1,0 +1,134 @@
+<resources>
+    <string name="app_name">PromoApp</string>
+
+    <string name="nav_deals">Ofertas</string>
+    <string name="nav_search">Busca</string>
+    <string name="nav_coupons">Cupons</string>
+    <string name="nav_alerts">Alertas</string>
+    <string name="nav_profile">Perfil</string>
+
+    <string name="tab_for_you">Para você</string>
+    <string name="tab_trending">Em alta</string>
+    <string name="tab_recent">Recentes</string>
+    <string name="tab_lowest_price">Menor preço</string>
+
+    <string name="load_error">Não foi possível carregar as ofertas.</string>
+    <string name="retry">Tentar de novo</string>
+    <string name="load_more_error">Erro ao carregar. Tentar de novo</string>
+    <string name="offline_banner">Sem conexão. Mostrando ofertas salvas.</string>
+    <string name="wishlist_add">Salvar na lista de desejos</string>
+    <string name="wishlist_remove">Remover da lista de desejos</string>
+
+    <string name="time_now">agora</string>
+    <string name="time_minutes_ago">há %1$d min</string>
+    <string name="time_hours_ago">há %1$d h</string>
+    <string name="time_days_ago">há %1$d d</string>
+
+    <string name="detail_title">Oferta</string>
+    <string name="back">Voltar</string>
+    <string name="go_to_store">Ir para %1$s</string>
+    <string name="price_history_title">Histórico de preço (30 dias)</string>
+    <string name="price_lowest">Menor</string>
+    <string name="price_average">Média</string>
+    <string name="price_highest">Maior</string>
+    <string name="price_chart_description">Gráfico de preço. Menor valor %1$s, maior valor %2$s.</string>
+
+    <string name="verdict_lowest_ever">Menor preço do período</string>
+    <string name="verdict_good_price">Bom preço</string>
+    <string name="verdict_fair_price">Preço na média</string>
+    <string name="verdict_above_average">Acima da média</string>
+
+    <string name="search_hint">Buscar produtos, lojas…</string>
+    <string name="search_clear">Limpar busca</string>
+    <string name="search_prompt">Busque por produto, loja ou categoria.</string>
+    <string name="search_empty">Nenhuma oferta encontrada. Tente mudar os filtros.</string>
+    <string name="filters">Filtros</string>
+    <string name="filters_count">Filtros (%1$d)</string>
+    <string name="filters_title">Filtrar ofertas</string>
+    <string name="filter_sort">Ordenar por</string>
+    <string name="filter_stores">Lojas</string>
+    <string name="filter_category">Categoria</string>
+    <string name="filter_price">Faixa de preço (R$)</string>
+    <string name="filter_min">Mínimo</string>
+    <string name="filter_max">Máximo</string>
+    <string name="filters_clear">Limpar</string>
+    <string name="filters_apply">Aplicar</string>
+    <string name="sort_relevance">Relevância</string>
+    <string name="sort_lowest_price">Menor preço</string>
+    <string name="sort_biggest_discount">Maior desconto</string>
+    <string name="sort_newest">Mais recentes</string>
+
+    <string name="coupons_title">Cupons</string>
+    <string name="coupons_all">Todos</string>
+    <string name="coupons_empty">Nenhum cupom disponível para esta loja.</string>
+    <string name="coupons_load_error">Não foi possível carregar os cupons.</string>
+    <string name="coupon_copy">Copiar</string>
+    <string name="coupon_copied">Código copiado</string>
+    <string name="coupon_min_purchase">Compra mínima de %1$s</string>
+    <string name="coupon_expired">Expirado</string>
+    <string name="coupon_expires_in_minutes">Expira em %1$d min</string>
+    <string name="coupon_expires_in_hours">Expira em %1$d h</string>
+    <string name="coupon_valid_until">Válido até %1$s</string>
+    <string name="coupon_no_expiry">Sem data de validade</string>
+
+    <string name="cancel">Cancelar</string>
+    <string name="alerts_title">Alertas de preço</string>
+    <string name="alerts_check_now">Verificar agora</string>
+    <string name="alerts_checking">Verificando…</string>
+    <string name="alerts_empty">Você ainda não tem alertas. Abra uma oferta e toque em Criar alerta de preço.</string>
+    <string name="alert_target">Alvo: %1$s</string>
+    <string name="alert_current">Atual: %1$s</string>
+    <string name="alert_status_active">Ativo</string>
+    <string name="alert_status_triggered">Atingido</string>
+    <string name="alert_delete">Excluir alerta</string>
+    <string name="alert_create">Criar alerta de preço</string>
+    <string name="alert_active_info">Avisaremos quando chegar a %1$s</string>
+    <string name="alert_triggered_info">Preço alvo atingido!</string>
+    <string name="alert_remove">Remover alerta</string>
+    <string name="alert_dialog_title">Alerta de preço</string>
+    <string name="alert_dialog_hint">Avisar quando chegar a (R$)</string>
+    <string name="alert_invalid_target">Informe um valor maior que zero e menor que o preço atual.</string>
+    <string name="alert_confirm">Criar</string>
+    <string name="notif_channel_name">Alertas de preço</string>
+    <string name="notif_title">Preço alvo atingido</string>
+    <string name="notif_text">%1$s chegou a %2$s</string>
+
+    <string name="post_title">Publicar oferta</string>
+    <string name="post_field_title">Título da oferta</string>
+    <string name="post_field_url">Link da oferta</string>
+    <string name="post_field_store">Loja</string>
+    <string name="post_field_price">Preço (R$)</string>
+    <string name="post_field_original_price">Preço original (R$, opcional)</string>
+    <string name="post_field_image">Link da imagem (opcional)</string>
+    <string name="post_field_coupon">Cupom (opcional)</string>
+    <string name="post_free_shipping">Frete grátis</string>
+    <string name="post_field_category">Categoria</string>
+    <string name="post_field_author">Seu nome</string>
+    <string name="post_submit">Publicar</string>
+    <string name="post_submitting">Publicando…</string>
+    <string name="post_failed">Não foi possível publicar. Tente de novo.</string>
+    <string name="err_title_short">Use pelo menos 8 caracteres.</string>
+    <string name="err_title_long">Use no máximo 120 caracteres.</string>
+    <string name="err_url">Informe um link válido (http ou https).</string>
+    <string name="err_image_url">Link de imagem inválido.</string>
+    <string name="err_store">Informe a loja.</string>
+    <string name="err_price">Informe um preço maior que zero.</string>
+    <string name="err_original">O preço original precisa ser maior que o preço.</string>
+    <string name="err_author">Informe seu nome.</string>
+    <string name="profile_title">Perfil</string>
+    <string name="profile_hello">Olá, %1$s</string>
+    <string name="profile_guest">Olá, visitante</string>
+    <string name="profile_post">Publicar oferta</string>
+    <string name="profile_my_deals">Minhas ofertas</string>
+    <string name="profile_my_deals_empty">Você ainda não publicou ofertas.</string>
+    <string name="profile_load_error">Não foi possível carregar suas ofertas.</string>
+
+    <string name="daily_toggle_title">Oferta do dia</string>
+    <string name="daily_toggle_subtitle">Um aviso por dia, às 9h, com a melhor oferta</string>
+    <string name="daily_channel_name">Oferta do dia</string>
+    <string name="daily_notif_title">Oferta do dia</string>
+    <string name="daily_notif_text">%1$s por %2$s (-%3$d%%)</string>
+    <string name="share">Compartilhar</string>
+    <string name="share_text">%1$s por %2$s\n%3$s</string>
+    <string name="share_chooser">Compartilhar oferta</string>
+</resources>

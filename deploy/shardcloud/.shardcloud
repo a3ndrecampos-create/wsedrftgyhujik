@@ -1,6 +1,0 @@
-DISPLAY_NAME=PromoApp Server
-DESCRIPTION=Coletor de ofertas e API do PromoApp
-MAIN=promo-server.jar
-MEMORY=512
-VERSION=latest
-SUBDOMAIN=meupromoapp

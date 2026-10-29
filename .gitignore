@@ -1,8 +1,11 @@
+*.iml
 .gradle/
+/local.properties
+/.idea/
+.DS_Store
 build/
-*.db
-*.db-journal
-.env
-promo.env
-sites.json
-.idea/
+/captures
+.externalNativeBuild
+.cxx
+*.jks
+*.keystore
