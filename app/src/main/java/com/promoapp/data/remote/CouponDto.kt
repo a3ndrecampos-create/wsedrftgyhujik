@@ -16,13 +16,14 @@ data class CouponDto(
     val url: String,
 )
 
-fun CouponDto.toDomain() = Coupon(
-    id = id,
-    code = code,
-    storeName = storeName,
-    description = description,
-    discountLabel = discountLabel,
-    minPurchase = minPurchase,
-    expiresAtMillis = expiresAtMillis,
-    url = url,
-)
+fun CouponDto.toDomain() =
+    Coupon(
+        id = id,
+        code = code,
+        storeName = storeName,
+        description = description,
+        discountLabel = discountLabel,
+        minPurchase = minPurchase,
+        expiresAtMillis = expiresAtMillis,
+        url = url,
+    )

@@ -11,15 +11,15 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DealDraftTest {
-
-    private fun validDraft() = DealDraft(
-        title = "Fone Bluetooth com cancelamento de ruído",
-        url = "https://loja.com.br/produto/123",
-        store = "Amazon",
-        price = 199.9,
-        originalPrice = 399.0,
-        authorName = "Ana",
-    )
+    private fun validDraft() =
+        DealDraft(
+            title = "Fone Bluetooth com cancelamento de ruído",
+            url = "https://loja.com.br/produto/123",
+            store = "Amazon",
+            price = 199.9,
+            originalPrice = 399.0,
+            authorName = "Ana",
+        )
 
     @Test
     fun `complete draft has no errors`() {
@@ -73,22 +73,24 @@ class DealDraftTest {
     }
 
     @Test
-    fun `use case rejects an invalid draft without calling the repository`() = runTest {
-        val repository = FakeDealRepository()
+    fun `use case rejects an invalid draft without calling the repository`() =
+        runTest {
+            val repository = FakeDealRepository()
 
-        val result = PostDealUseCase(repository)(validDraft().copy(title = "Oi"))
+            val result = PostDealUseCase(repository)(validDraft().copy(title = "Oi"))
 
-        assertTrue(result.exceptionOrNull() is InvalidDraftException)
-        assertTrue(repository.postedDrafts.isEmpty())
-    }
+            assertTrue(result.exceptionOrNull() is InvalidDraftException)
+            assertTrue(repository.postedDrafts.isEmpty())
+        }
 
     @Test
-    fun `use case sends a valid draft`() = runTest {
-        val repository = FakeDealRepository()
+    fun `use case sends a valid draft`() =
+        runTest {
+            val repository = FakeDealRepository()
 
-        val result = PostDealUseCase(repository)(validDraft())
+            val result = PostDealUseCase(repository)(validDraft())
 
-        assertTrue(result.isSuccess)
-        assertEquals(1, repository.postedDrafts.size)
-    }
+            assertTrue(result.isSuccess)
+            assertEquals(1, repository.postedDrafts.size)
+        }
 }

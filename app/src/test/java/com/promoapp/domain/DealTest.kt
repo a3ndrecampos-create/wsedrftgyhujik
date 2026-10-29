@@ -6,7 +6,6 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class DealTest {
-
     @Test
     fun `discount is calculated from original price`() {
         assertEquals(50, testDeal(price = 50.0, originalPrice = 100.0).discountPercent)

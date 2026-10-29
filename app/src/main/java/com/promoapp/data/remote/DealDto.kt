@@ -37,18 +37,19 @@ data class NewDealRequest(
     val author: String,
 )
 
-fun DealDraft.toRequest() = NewDealRequest(
-    title = title.trim(),
-    url = url.trim(),
-    store = store.trim(),
-    price = price ?: 0.0,
-    originalPrice = originalPrice,
-    imageUrl = imageUrl.trim().ifBlank { null },
-    coupon = couponCode.trim().ifBlank { null },
-    category = category,
-    freeShipping = freeShipping,
-    author = authorName.trim(),
-)
+fun DealDraft.toRequest() =
+    NewDealRequest(
+        title = title.trim(),
+        url = url.trim(),
+        store = store.trim(),
+        price = price ?: 0.0,
+        originalPrice = originalPrice,
+        imageUrl = imageUrl.trim().ifBlank { null },
+        coupon = couponCode.trim().ifBlank { null },
+        category = category,
+        freeShipping = freeShipping,
+        author = authorName.trim(),
+    )
 
 @Serializable
 data class PricePointDto(
@@ -64,19 +65,20 @@ data class FilterOptionsDto(
 
 fun FilterOptionsDto.toDomain() = FilterOptions(stores = stores, categories = categories)
 
-fun DealDto.toDomain() = Deal(
-    id = id,
-    title = title,
-    imageUrl = imageUrl,
-    storeName = storeName,
-    price = price,
-    originalPrice = originalPrice,
-    authorName = authorName,
-    postedAtMillis = postedAtMillis,
-    temperature = temperature,
-    commentCount = commentCount,
-    tags = tags,
-    url = url,
-)
+fun DealDto.toDomain() =
+    Deal(
+        id = id,
+        title = title,
+        imageUrl = imageUrl,
+        storeName = storeName,
+        price = price,
+        originalPrice = originalPrice,
+        authorName = authorName,
+        postedAtMillis = postedAtMillis,
+        temperature = temperature,
+        commentCount = commentCount,
+        tags = tags,
+        url = url,
+    )
 
 fun PricePointDto.toDomain() = PricePoint(timestampMillis = timestampMillis, price = price)

@@ -7,11 +7,13 @@ import com.promoapp.domain.model.Coupon
 import com.promoapp.domain.repository.CouponRepository
 import javax.inject.Inject
 
-class CouponRepositoryImpl @Inject constructor(
-    private val api: CouponApi,
-) : CouponRepository {
-
-    override suspend fun getCoupons(): Result<List<Coupon>> = safeApiCall {
-        api.getCoupons().map { it.toDomain() }
+class CouponRepositoryImpl
+    @Inject
+    constructor(
+        private val api: CouponApi,
+    ) : CouponRepository {
+        override suspend fun getCoupons(): Result<List<Coupon>> =
+            safeApiCall {
+                api.getCoupons().map { it.toDomain() }
+            }
     }
-}

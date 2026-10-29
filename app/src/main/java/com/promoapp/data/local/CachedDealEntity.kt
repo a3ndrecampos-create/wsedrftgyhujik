@@ -31,7 +31,11 @@ data class CachedDealEntity(
 
 private const val TAG_SEPARATOR = "\u001F"
 
-fun DealDto.toEntity(tab: String, position: Int, cachedAtMillis: Long) = CachedDealEntity(
+fun DealDto.toEntity(
+    tab: String,
+    position: Int,
+    cachedAtMillis: Long,
+) = CachedDealEntity(
     tab = tab,
     id = id,
     position = position,
@@ -49,17 +53,18 @@ fun DealDto.toEntity(tab: String, position: Int, cachedAtMillis: Long) = CachedD
     cachedAtMillis = cachedAtMillis,
 )
 
-fun CachedDealEntity.toDomain() = Deal(
-    id = id,
-    title = title,
-    imageUrl = imageUrl,
-    storeName = storeName,
-    price = price,
-    originalPrice = originalPrice,
-    authorName = authorName,
-    postedAtMillis = postedAtMillis,
-    temperature = temperature,
-    commentCount = commentCount,
-    tags = tags.split(TAG_SEPARATOR).filter { it.isNotEmpty() },
-    url = url,
-)
+fun CachedDealEntity.toDomain() =
+    Deal(
+        id = id,
+        title = title,
+        imageUrl = imageUrl,
+        storeName = storeName,
+        price = price,
+        originalPrice = originalPrice,
+        authorName = authorName,
+        postedAtMillis = postedAtMillis,
+        temperature = temperature,
+        commentCount = commentCount,
+        tags = tags.split(TAG_SEPARATOR).filter { it.isNotEmpty() },
+        url = url,
+    )

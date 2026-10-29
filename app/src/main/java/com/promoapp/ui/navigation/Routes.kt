@@ -21,4 +21,6 @@ data object ProfileRoute
 data object PostDealRoute
 
 @Serializable
-data class DealDetailRoute(val dealId: Long)
+data class DealDetailRoute(
+    val dealId: Long,
+)

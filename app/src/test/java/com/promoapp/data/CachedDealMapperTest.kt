@@ -8,21 +8,21 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class CachedDealMapperTest {
-
-    private fun dto(tags: List<String>) = DealDto(
-        id = 7,
-        title = "Fone",
-        imageUrl = "https://img",
-        storeName = "Amazon",
-        price = 99.9,
-        originalPrice = 199.0,
-        authorName = "Ana",
-        postedAtMillis = 1_000,
-        temperature = 42,
-        commentCount = 3,
-        tags = tags,
-        url = "https://loja",
-    )
+    private fun dto(tags: List<String>) =
+        DealDto(
+            id = 7,
+            title = "Fone",
+            imageUrl = "https://img",
+            storeName = "Amazon",
+            price = 99.9,
+            originalPrice = 199.0,
+            authorName = "Ana",
+            postedAtMillis = 1_000,
+            temperature = 42,
+            commentCount = 3,
+            tags = tags,
+            url = "https://loja",
+        )
 
     @Test
     fun `entity round trip keeps all fields`() {

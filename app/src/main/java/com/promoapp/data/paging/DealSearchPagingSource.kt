@@ -14,7 +14,6 @@ class DealSearchPagingSource(
     private val api: DealApi,
     private val filters: SearchFilters,
 ) : PagingSource<Int, Deal>() {
-
     override fun getRefreshKey(state: PagingState<Int, Deal>): Int? =
         state.anchorPosition?.let { anchor ->
             state.closestPageToPosition(anchor)?.let { it.prevKey?.plus(1) ?: it.nextKey?.minus(1) }
@@ -23,16 +22,18 @@ class DealSearchPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Deal> {
         val page = params.key ?: FIRST_PAGE
         return try {
-            val items = api.searchDeals(
-                query = filters.query.takeIf { it.isNotBlank() },
-                stores = filters.stores.takeIf { it.isNotEmpty() }?.joinToString(","),
-                category = filters.category,
-                minPrice = filters.minPrice,
-                maxPrice = filters.maxPrice,
-                sort = filters.sort.name.lowercase(),
-                page = page,
-                pageSize = params.loadSize,
-            ).map { it.toDomain() }
+            val items =
+                api
+                    .searchDeals(
+                        query = filters.query.takeIf { it.isNotBlank() },
+                        stores = filters.stores.takeIf { it.isNotEmpty() }?.joinToString(","),
+                        category = filters.category,
+                        minPrice = filters.minPrice,
+                        maxPrice = filters.maxPrice,
+                        sort = filters.sort.name.lowercase(),
+                        page = page,
+                        pageSize = params.loadSize,
+                    ).map { it.toDomain() }
             LoadResult.Page(
                 data = items,
                 prevKey = if (page == FIRST_PAGE) null else page - 1,

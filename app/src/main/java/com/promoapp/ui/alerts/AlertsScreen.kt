@@ -46,24 +46,27 @@ fun AlertsScreen(
         }
 
         when {
-            list == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-            list.isEmpty() -> Box(Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
-                Text(stringResource(R.string.alerts_empty))
-            }
-            else -> LazyColumn(
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                items(list, key = { it.dealId }) { alert ->
-                    AlertCard(
-                        alert = alert,
-                        onClick = { onDealClick(alert.dealId) },
-                        onDelete = { viewModel.onDelete(alert.dealId) },
-                    )
+            list == null ->
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
-            }
+            list.isEmpty() ->
+                Box(Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
+                    Text(stringResource(R.string.alerts_empty))
+                }
+            else ->
+                LazyColumn(
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    items(list, key = { it.dealId }) { alert ->
+                        AlertCard(
+                            alert = alert,
+                            onClick = { onDealClick(alert.dealId) },
+                            onDelete = { viewModel.onDelete(alert.dealId) },
+                        )
+                    }
+                }
         }
     }
 }

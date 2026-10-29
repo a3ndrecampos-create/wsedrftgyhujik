@@ -37,18 +37,19 @@ data class PostDealUiState(
     val submitFailed: Boolean = false,
     val options: FilterOptions? = null,
 ) {
-    fun toDraft() = DealDraft(
-        title = title,
-        url = url,
-        store = store,
-        price = parsePrice(priceText),
-        originalPrice = parsePrice(originalPriceText),
-        imageUrl = imageUrl,
-        couponCode = coupon,
-        category = category,
-        freeShipping = freeShipping,
-        authorName = author,
-    )
+    fun toDraft() =
+        DealDraft(
+            title = title,
+            url = url,
+            store = store,
+            price = parsePrice(priceText),
+            originalPrice = parsePrice(originalPriceText),
+            imageUrl = imageUrl,
+            couponCode = coupon,
+            category = category,
+            freeShipping = freeShipping,
+            authorName = author,
+        )
 
     /** Erros que devem aparecer na tela: só depois da primeira tentativa de publicar. */
     val visibleErrors: Set<DraftError>
@@ -56,60 +57,70 @@ data class PostDealUiState(
 }
 
 @HiltViewModel
-class PostDealViewModel @Inject constructor(
-    private val postDeal: PostDealUseCase,
-    getFilterOptions: GetFilterOptionsUseCase,
-    private val profile: ProfileRepository,
-) : ViewModel() {
+class PostDealViewModel
+    @Inject
+    constructor(
+        private val postDeal: PostDealUseCase,
+        getFilterOptions: GetFilterOptionsUseCase,
+        private val profile: ProfileRepository,
+    ) : ViewModel() {
+        private val _state = MutableStateFlow(PostDealUiState())
+        val state: StateFlow<PostDealUiState> = _state.asStateFlow()
 
-    private val _state = MutableStateFlow(PostDealUiState())
-    val state: StateFlow<PostDealUiState> = _state.asStateFlow()
+        private val postedEvents = Channel<Long>(Channel.BUFFERED)
 
-    private val postedEvents = Channel<Long>(Channel.BUFFERED)
+        /** Emite o id da oferta publicada, uma única vez, para a tela navegar. */
+        val postedDealId: Flow<Long> = postedEvents.receiveAsFlow()
 
-    /** Emite o id da oferta publicada, uma única vez, para a tela navegar. */
-    val postedDealId: Flow<Long> = postedEvents.receiveAsFlow()
-
-    init {
-        viewModelScope.launch {
-            val name = profile.displayName.first()
-            _state.update { if (it.author.isBlank()) it.copy(author = name) else it }
+        init {
+            viewModelScope.launch {
+                val name = profile.displayName.first()
+                _state.update { if (it.author.isBlank()) it.copy(author = name) else it }
+            }
+            viewModelScope.launch {
+                val options = getFilterOptions().getOrNull()
+                _state.update { it.copy(options = options) }
+            }
         }
-        viewModelScope.launch {
-            val options = getFilterOptions().getOrNull()
-            _state.update { it.copy(options = options) }
+
+        fun onTitleChange(value: String) = _state.update { it.copy(title = value) }
+
+        fun onUrlChange(value: String) = _state.update { it.copy(url = value) }
+
+        fun onStoreChange(value: String) = _state.update { it.copy(store = value) }
+
+        fun onPriceChange(value: String) = _state.update { it.copy(priceText = value) }
+
+        fun onOriginalPriceChange(value: String) = _state.update { it.copy(originalPriceText = value) }
+
+        fun onImageUrlChange(value: String) = _state.update { it.copy(imageUrl = value) }
+
+        fun onCouponChange(value: String) = _state.update { it.copy(coupon = value) }
+
+        fun onAuthorChange(value: String) = _state.update { it.copy(author = value) }
+
+        fun onFreeShippingChange(value: Boolean) = _state.update { it.copy(freeShipping = value) }
+
+        fun onCategoryToggle(name: String) = _state.update { it.copy(category = if (it.category == name) null else name) }
+
+        fun submit() {
+            val current = _state.value
+            if (current.isSubmitting) return
+            val draft = current.toDraft()
+            if (draft.validate().isNotEmpty()) {
+                _state.update { it.copy(showErrors = true) }
+                return
+            }
+            _state.update { it.copy(isSubmitting = true, submitFailed = false, showErrors = true) }
+            viewModelScope.launch {
+                postDeal(draft).fold(
+                    onSuccess = { deal ->
+                        profile.setDisplayName(draft.authorName)
+                        _state.update { it.copy(isSubmitting = false) }
+                        postedEvents.send(deal.id)
+                    },
+                    onFailure = { _state.update { it.copy(isSubmitting = false, submitFailed = true) } },
+                )
+            }
         }
     }
-
-    fun onTitleChange(value: String) = _state.update { it.copy(title = value) }
-    fun onUrlChange(value: String) = _state.update { it.copy(url = value) }
-    fun onStoreChange(value: String) = _state.update { it.copy(store = value) }
-    fun onPriceChange(value: String) = _state.update { it.copy(priceText = value) }
-    fun onOriginalPriceChange(value: String) = _state.update { it.copy(originalPriceText = value) }
-    fun onImageUrlChange(value: String) = _state.update { it.copy(imageUrl = value) }
-    fun onCouponChange(value: String) = _state.update { it.copy(coupon = value) }
-    fun onAuthorChange(value: String) = _state.update { it.copy(author = value) }
-    fun onFreeShippingChange(value: Boolean) = _state.update { it.copy(freeShipping = value) }
-    fun onCategoryToggle(name: String) = _state.update { it.copy(category = if (it.category == name) null else name) }
-
-    fun submit() {
-        val current = _state.value
-        if (current.isSubmitting) return
-        val draft = current.toDraft()
-        if (draft.validate().isNotEmpty()) {
-            _state.update { it.copy(showErrors = true) }
-            return
-        }
-        _state.update { it.copy(isSubmitting = true, submitFailed = false, showErrors = true) }
-        viewModelScope.launch {
-            postDeal(draft).fold(
-                onSuccess = { deal ->
-                    profile.setDisplayName(draft.authorName)
-                    _state.update { it.copy(isSubmitting = false) }
-                    postedEvents.send(deal.id)
-                },
-                onFailure = { _state.update { it.copy(isSubmitting = false, submitFailed = true) } },
-            )
-        }
-    }
-}

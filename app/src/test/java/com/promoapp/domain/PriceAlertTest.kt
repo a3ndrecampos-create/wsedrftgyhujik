@@ -9,8 +9,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PriceAlertTest {
-
-    private fun alert(target: Double = 90.0, triggeredAt: Long? = null) = PriceAlert(
+    private fun alert(
+        target: Double = 90.0,
+        triggeredAt: Long? = null,
+    ) = PriceAlert(
         dealId = 1,
         title = "Fone",
         imageUrl = "",

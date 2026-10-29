@@ -18,28 +18,30 @@ data class AlertEntity(
     val triggeredAtMillis: Long?,
 )
 
-fun AlertEntity.toDomain() = PriceAlert(
-    dealId = dealId,
-    title = title,
-    imageUrl = imageUrl,
-    storeName = storeName,
-    url = url,
-    targetPrice = targetPrice,
-    priceWhenCreated = priceWhenCreated,
-    lastKnownPrice = lastKnownPrice,
-    createdAtMillis = createdAtMillis,
-    triggeredAtMillis = triggeredAtMillis,
-)
+fun AlertEntity.toDomain() =
+    PriceAlert(
+        dealId = dealId,
+        title = title,
+        imageUrl = imageUrl,
+        storeName = storeName,
+        url = url,
+        targetPrice = targetPrice,
+        priceWhenCreated = priceWhenCreated,
+        lastKnownPrice = lastKnownPrice,
+        createdAtMillis = createdAtMillis,
+        triggeredAtMillis = triggeredAtMillis,
+    )
 
-fun PriceAlert.toEntity() = AlertEntity(
-    dealId = dealId,
-    title = title,
-    imageUrl = imageUrl,
-    storeName = storeName,
-    url = url,
-    targetPrice = targetPrice,
-    priceWhenCreated = priceWhenCreated,
-    lastKnownPrice = lastKnownPrice,
-    createdAtMillis = createdAtMillis,
-    triggeredAtMillis = triggeredAtMillis,
-)
+fun PriceAlert.toEntity() =
+    AlertEntity(
+        dealId = dealId,
+        title = title,
+        imageUrl = imageUrl,
+        storeName = storeName,
+        url = url,
+        targetPrice = targetPrice,
+        priceWhenCreated = priceWhenCreated,
+        lastKnownPrice = lastKnownPrice,
+        createdAtMillis = createdAtMillis,
+        triggeredAtMillis = triggeredAtMillis,
+    )

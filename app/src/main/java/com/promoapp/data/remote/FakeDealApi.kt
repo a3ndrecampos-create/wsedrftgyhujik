@@ -7,25 +7,29 @@ import kotlin.math.sin
 
 /** API falsa para desenvolver a UI sem backend. Gera 5 páginas de ofertas e um histórico de 30 dias. */
 class FakeDealApi : DealApi {
-
     private val stores = listOf("Amazon", "Mercado Livre", "Magalu", "Shopee", "KaBuM!")
-    private val products = listOf(
-        "Fone Bluetooth ANC",
-        "Smart TV 55\" 4K",
-        "Tênis de corrida",
-        "Air Fryer 8L",
-        "Monitor Gamer 24\" 180Hz",
-        "Notebook 16GB/512GB",
-        "Cafeteira expresso",
-        "Mochila para notebook",
-    )
+    private val products =
+        listOf(
+            "Fone Bluetooth ANC",
+            "Smart TV 55\" 4K",
+            "Tênis de corrida",
+            "Air Fryer 8L",
+            "Monitor Gamer 24\" 180Hz",
+            "Notebook 16GB/512GB",
+            "Cafeteira expresso",
+            "Mochila para notebook",
+        )
     private val categories = listOf("Áudio", "TVs", "Moda", "Casa", "Informática", "Informática", "Casa", "Moda")
     private val tagOptions = listOf("Frete Grátis", "Cupom", "Parcelado")
     private val posted = CopyOnWriteArrayList<DealDto>()
     private val postedCategories = ConcurrentHashMap<Long, String>()
     private val authors = listOf("Marcos", "Laura", "Felipe", "Rafael", "Joyce")
 
-    override suspend fun getDeals(tab: String, page: Int, pageSize: Int): List<DealDto> {
+    override suspend fun getDeals(
+        tab: String,
+        page: Int,
+        pageSize: Int,
+    ): List<DealDto> {
         delay(NETWORK_DELAY_MS)
         if (page > MAX_PAGES) return emptyList()
         val now = System.currentTimeMillis()
@@ -47,23 +51,25 @@ class FakeDealApi : DealApi {
         delay(NETWORK_DELAY_MS)
         val now = System.currentTimeMillis()
         val storeSet = stores?.split(",")?.toSet().orEmpty()
-        val filtered = ((1L..CATALOG_SIZE).map { buildDeal(it, now) } + posted).filter { deal ->
-            (
-                query.isNullOrBlank() ||
-                    deal.title.contains(query, ignoreCase = true) ||
-                    deal.storeName.contains(query, ignoreCase = true)
-            ) &&
-                (storeSet.isEmpty() || deal.storeName in storeSet) &&
-                (category == null || categoryOf(deal.id) == category) &&
-                (minPrice == null || deal.price >= minPrice) &&
-                (maxPrice == null || deal.price <= maxPrice)
-        }
-        val sorted = when (sort) {
-            "lowest_price" -> filtered.sortedBy { it.price }
-            "biggest_discount" -> filtered.sortedByDescending { discountOf(it) }
-            "newest" -> filtered.sortedByDescending { it.postedAtMillis }
-            else -> filtered
-        }
+        val filtered =
+            ((1L..CATALOG_SIZE).map { buildDeal(it, now) } + posted).filter { deal ->
+                (
+                    query.isNullOrBlank() ||
+                        deal.title.contains(query, ignoreCase = true) ||
+                        deal.storeName.contains(query, ignoreCase = true)
+                ) &&
+                    (storeSet.isEmpty() || deal.storeName in storeSet) &&
+                    (category == null || categoryOf(deal.id) == category) &&
+                    (minPrice == null || deal.price >= minPrice) &&
+                    (maxPrice == null || deal.price <= maxPrice)
+            }
+        val sorted =
+            when (sort) {
+                "lowest_price" -> filtered.sortedBy { it.price }
+                "biggest_discount" -> filtered.sortedByDescending { discountOf(it) }
+                "newest" -> filtered.sortedByDescending { it.postedAtMillis }
+                else -> filtered
+            }
         return sorted.drop((page - 1) * pageSize).take(pageSize)
     }
 
@@ -96,22 +102,24 @@ class FakeDealApi : DealApi {
     override suspend fun postDeal(request: NewDealRequest): DealDto {
         delay(POST_DELAY_MS)
         val id = POSTED_ID_START + posted.size
-        val tags = buildList {
-            if (request.freeShipping) add("Frete Grátis")
-            if (!request.coupon.isNullOrBlank()) add("Cupom ${request.coupon}")
-        }
-        val deal = DealDto(
-            id = id,
-            title = request.title,
-            imageUrl = request.imageUrl ?: "https://picsum.photos/seed/post$id/600/400",
-            storeName = request.store,
-            price = request.price,
-            originalPrice = request.originalPrice,
-            authorName = request.author,
-            postedAtMillis = System.currentTimeMillis(),
-            tags = tags,
-            url = request.url,
-        )
+        val tags =
+            buildList {
+                if (request.freeShipping) add("Frete Grátis")
+                if (!request.coupon.isNullOrBlank()) add("Cupom ${request.coupon}")
+            }
+        val deal =
+            DealDto(
+                id = id,
+                title = request.title,
+                imageUrl = request.imageUrl ?: "https://picsum.photos/seed/post$id/600/400",
+                storeName = request.store,
+                price = request.price,
+                originalPrice = request.originalPrice,
+                authorName = request.author,
+                postedAtMillis = System.currentTimeMillis(),
+                tags = tags,
+                url = request.url,
+            )
         posted.add(0, deal)
         request.category?.let { postedCategories[id] = it }
         return deal
@@ -122,7 +130,10 @@ class FakeDealApi : DealApi {
         return posted.toList()
     }
 
-    private fun buildDeal(id: Long, now: Long): DealDto {
+    private fun buildDeal(
+        id: Long,
+        now: Long,
+    ): DealDto {
         val original = 100.0 + (id * 37 % 900)
         // O preço muda a cada hora (até -12%), para simular variação real e testar alertas.
         val drift = 1.0 - ((now / HOUR_MS + id) % 4) * 0.04
@@ -145,8 +156,7 @@ class FakeDealApi : DealApi {
 
     private fun categoryOf(id: Long) = postedCategories[id] ?: categories[(id % products.size).toInt()]
 
-    private fun discountOf(deal: DealDto): Double =
-        deal.originalPrice?.takeIf { it > deal.price }?.let { (it - deal.price) / it } ?: 0.0
+    private fun discountOf(deal: DealDto): Double = deal.originalPrice?.takeIf { it > deal.price }?.let { (it - deal.price) / it } ?: 0.0
 
     private fun round2(value: Double) = Math.round(value * 100) / 100.0
 

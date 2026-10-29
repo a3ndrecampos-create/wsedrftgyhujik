@@ -8,10 +8,10 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class PriceHistoryTest {
-
-    private val history = PriceHistory(
-        listOf(100.0, 200.0, 300.0).mapIndexed { index, price -> PricePoint(index.toLong(), price) },
-    )
+    private val history =
+        PriceHistory(
+            listOf(100.0, 200.0, 300.0).mapIndexed { index, price -> PricePoint(index.toLong(), price) },
+        )
 
     @Test
     fun `statistics are computed from points`() {

@@ -48,10 +48,11 @@ fun PriceAlertSection(
 
     // Pede a permissão de notificação (Android 13+) e cria o alerta de qualquer forma:
     // sem a permissão ele continua salvo e aparece na aba Alertas.
-    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
-        pendingTarget?.let(onCreate)
-        pendingTarget = null
-    }
+    val permissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+            pendingTarget?.let(onCreate)
+            pendingTarget = null
+        }
 
     Card(modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -61,11 +62,12 @@ fun PriceAlertSection(
                 }
             } else {
                 Text(
-                    text = if (alert.isTriggered) {
-                        stringResource(R.string.alert_triggered_info)
-                    } else {
-                        stringResource(R.string.alert_active_info, formatBrl(alert.targetPrice))
-                    },
+                    text =
+                        if (alert.isTriggered) {
+                            stringResource(R.string.alert_triggered_info)
+                        } else {
+                            stringResource(R.string.alert_active_info, formatBrl(alert.targetPrice))
+                        },
                 )
                 TextButton(onClick = onRemove) { Text(stringResource(R.string.alert_remove)) }
             }
@@ -78,9 +80,10 @@ fun PriceAlertSection(
             onDismiss = { showDialog = false },
             onConfirm = { target ->
                 showDialog = false
-                val needsPermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                    ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
-                    PackageManager.PERMISSION_GRANTED
+                val needsPermission =
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+                        PackageManager.PERMISSION_GRANTED
                 if (needsPermission) {
                     pendingTarget = target
                     permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)

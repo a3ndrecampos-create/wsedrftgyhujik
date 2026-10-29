@@ -9,7 +9,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SearchFiltersTest {
-
     @Test
     fun `default filters have no criteria`() {
         val filters = SearchFilters()
@@ -33,13 +32,14 @@ class SearchFiltersTest {
 
     @Test
     fun `each filter group counts once`() {
-        val filters = SearchFilters(
-            stores = setOf("Amazon", "Magalu"),
-            category = "Áudio",
-            minPrice = 10.0,
-            maxPrice = 100.0,
-            sort = SearchSort.LOWEST_PRICE,
-        )
+        val filters =
+            SearchFilters(
+                stores = setOf("Amazon", "Magalu"),
+                category = "Áudio",
+                minPrice = 10.0,
+                maxPrice = 100.0,
+                sort = SearchSort.LOWEST_PRICE,
+            )
 
         assertEquals(4, filters.activeFilterCount)
     }

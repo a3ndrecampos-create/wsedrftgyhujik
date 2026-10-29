@@ -18,45 +18,52 @@ import javax.inject.Inject
 
 sealed interface MyDealsState {
     data object Loading : MyDealsState
+
     data object Error : MyDealsState
-    data class Success(val deals: List<Deal>) : MyDealsState
+
+    data class Success(
+        val deals: List<Deal>,
+    ) : MyDealsState
 }
 
 @HiltViewModel
-class ProfileViewModel @Inject constructor(
-    profile: ProfileRepository,
-    private val repository: DealRepository,
-    private val settings: SettingsRepository,
-    private val dailyDealScheduler: DailyDealScheduler,
-) : ViewModel() {
+class ProfileViewModel
+    @Inject
+    constructor(
+        profile: ProfileRepository,
+        private val repository: DealRepository,
+        private val settings: SettingsRepository,
+        private val dailyDealScheduler: DailyDealScheduler,
+    ) : ViewModel() {
+        val displayName: StateFlow<String> =
+            profile.displayName
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), "")
 
-    val displayName: StateFlow<String> = profile.displayName
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), "")
+        val dailyDealsEnabled: StateFlow<Boolean> =
+            settings.dailyDealsEnabled
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), false)
 
-    val dailyDealsEnabled: StateFlow<Boolean> = settings.dailyDealsEnabled
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), false)
+        private val _myDeals = MutableStateFlow<MyDealsState>(MyDealsState.Loading)
+        val myDeals: StateFlow<MyDealsState> = _myDeals.asStateFlow()
 
-    private val _myDeals = MutableStateFlow<MyDealsState>(MyDealsState.Loading)
-    val myDeals: StateFlow<MyDealsState> = _myDeals.asStateFlow()
+        /** Recarrega a lista. Se já havia dados, eles continuam na tela caso a rede falhe. */
+        fun refresh() {
+            viewModelScope.launch {
+                repository.getMyDeals().fold(
+                    onSuccess = { _myDeals.value = MyDealsState.Success(it) },
+                    onFailure = { if (_myDeals.value !is MyDealsState.Success) _myDeals.value = MyDealsState.Error },
+                )
+            }
+        }
 
-    /** Recarrega a lista. Se já havia dados, eles continuam na tela caso a rede falhe. */
-    fun refresh() {
-        viewModelScope.launch {
-            repository.getMyDeals().fold(
-                onSuccess = { _myDeals.value = MyDealsState.Success(it) },
-                onFailure = { if (_myDeals.value !is MyDealsState.Success) _myDeals.value = MyDealsState.Error },
-            )
+        fun onDailyDealsChange(enabled: Boolean) {
+            viewModelScope.launch {
+                settings.setDailyDealsEnabled(enabled)
+                dailyDealScheduler.setEnabled(enabled)
+            }
+        }
+
+        private companion object {
+            const val STOP_TIMEOUT_MS = 5_000L
         }
     }
-
-    fun onDailyDealsChange(enabled: Boolean) {
-        viewModelScope.launch {
-            settings.setDailyDealsEnabled(enabled)
-            dailyDealScheduler.setEnabled(enabled)
-        }
-    }
-
-    private companion object {
-        const val STOP_TIMEOUT_MS = 5_000L
-    }
-}

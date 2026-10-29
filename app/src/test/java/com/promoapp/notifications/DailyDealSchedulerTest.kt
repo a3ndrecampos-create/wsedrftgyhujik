@@ -7,10 +7,12 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 
 class DailyDealSchedulerTest {
-
     private val zone = ZoneId.of("America/Sao_Paulo")
 
-    private fun at(hour: Int, minute: Int = 0) = ZonedDateTime.of(2026, 10, 28, hour, minute, 0, 0, zone)
+    private fun at(
+        hour: Int,
+        minute: Int = 0,
+    ) = ZonedDateTime.of(2026, 10, 28, hour, minute, 0, 0, zone)
 
     @Test
     fun `before the notify hour it waits until today`() {

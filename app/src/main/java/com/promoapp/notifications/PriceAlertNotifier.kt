@@ -22,33 +22,41 @@ object PriceAlertNotifier {
     private const val CHANNEL_ID = "price_alerts"
 
     fun createChannel(context: Context) {
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            context.getString(R.string.notif_channel_name),
-            NotificationManager.IMPORTANCE_DEFAULT,
-        )
+        val channel =
+            NotificationChannel(
+                CHANNEL_ID,
+                context.getString(R.string.notif_channel_name),
+                NotificationManager.IMPORTANCE_DEFAULT,
+            )
         context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
 
     @SuppressLint("MissingPermission")
-    fun notify(context: Context, alert: PriceAlert) {
+    fun notify(
+        context: Context,
+        alert: PriceAlert,
+    ) {
         if (!hasNotificationPermission(context)) return
 
-        val openDeal = Intent(Intent.ACTION_VIEW, "promoapp://deal/${alert.dealId}".toUri(), context, MainActivity::class.java)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-        val pendingIntent = PendingIntent.getActivity(
-            context,
-            alert.dealId.toInt(),
-            openDeal,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(context.getString(R.string.notif_title))
-            .setContentText(context.getString(R.string.notif_text, alert.title, formatBrl(alert.lastKnownPrice)))
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-            .build()
+        val openDeal =
+            Intent(Intent.ACTION_VIEW, "promoapp://deal/${alert.dealId}".toUri(), context, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        val pendingIntent =
+            PendingIntent.getActivity(
+                context,
+                alert.dealId.toInt(),
+                openDeal,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+        val notification =
+            NotificationCompat
+                .Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(context.getString(R.string.notif_title))
+                .setContentText(context.getString(R.string.notif_text, alert.title, formatBrl(alert.lastKnownPrice)))
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .build()
         NotificationManagerCompat.from(context).notify(alert.dealId.toInt(), notification)
     }
 

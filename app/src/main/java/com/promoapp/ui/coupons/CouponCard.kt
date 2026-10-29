@@ -88,15 +88,19 @@ fun CouponCard(
 }
 
 @Composable
-private fun StatusBadge(text: String, status: CouponStatus) {
-    val (container, content) = when (status) {
-        CouponStatus.EXPIRING_SOON ->
-            MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
-        CouponStatus.EXPIRED ->
-            MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
-        CouponStatus.ACTIVE ->
-            MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
-    }
+private fun StatusBadge(
+    text: String,
+    status: CouponStatus,
+) {
+    val (container, content) =
+        when (status) {
+            CouponStatus.EXPIRING_SOON ->
+                MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
+            CouponStatus.EXPIRED ->
+                MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
+            CouponStatus.ACTIVE ->
+                MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
+        }
     Surface(shape = RoundedCornerShape(50), color = container) {
         Text(
             text = text,
@@ -107,16 +111,17 @@ private fun StatusBadge(text: String, status: CouponStatus) {
     }
 }
 
-private val previewCoupon = Coupon(
-    id = 1,
-    code = "PROMO11",
-    storeName = "Amazon",
-    description = "Primeira compra pelo app",
-    discountLabel = "R$ 50 OFF",
-    minPurchase = 200.0,
-    expiresAtMillis = System.currentTimeMillis() + 3 * 3_600_000L,
-    url = "https://example.com",
-)
+private val previewCoupon =
+    Coupon(
+        id = 1,
+        code = "PROMO11",
+        storeName = "Amazon",
+        description = "Primeira compra pelo app",
+        discountLabel = "R$ 50 OFF",
+        minPurchase = 200.0,
+        expiresAtMillis = System.currentTimeMillis() + 3 * 3_600_000L,
+        url = "https://example.com",
+    )
 
 @Preview(showBackground = true)
 @Composable

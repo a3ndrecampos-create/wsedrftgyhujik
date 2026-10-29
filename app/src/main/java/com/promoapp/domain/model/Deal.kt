@@ -16,9 +16,10 @@ data class Deal(
 ) {
     /** Percentual de desconto calculado a partir do preço original, ou null se não houver. */
     val discountPercent: Int?
-        get() = originalPrice
-            ?.takeIf { it > price && it > 0 }
-            ?.let { (((it - price) / it) * 100).toInt() }
+        get() =
+            originalPrice
+                ?.takeIf { it > price && it > 0 }
+                ?.let { (((it - price) / it) * 100).toInt() }
 }
 
 enum class DealTab {

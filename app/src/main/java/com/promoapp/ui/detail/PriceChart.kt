@@ -34,10 +34,11 @@ fun PriceChart(
     val range = (maxPrice - minPrice).takeIf { it > 0 } ?: 1.0
 
     Canvas(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(160.dp)
-            .semantics { contentDescription = description },
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(160.dp)
+                .semantics { contentDescription = description },
     ) {
         val stepX = size.width / (points.size - 1)
         val verticalPadding = size.height * 0.1f

@@ -25,15 +25,15 @@ import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PostDealViewModelTest {
-
     private val repository = FakeDealRepository()
     private val profile = FakeProfileRepository(initialName = "Ana")
 
-    private fun viewModel() = PostDealViewModel(
-        postDeal = PostDealUseCase(repository),
-        getFilterOptions = GetFilterOptionsUseCase(repository),
-        profile = profile,
-    )
+    private fun viewModel() =
+        PostDealViewModel(
+            postDeal = PostDealUseCase(repository),
+            getFilterOptions = GetFilterOptionsUseCase(repository),
+            profile = profile,
+        )
 
     private fun PostDealViewModel.fillValidForm() {
         onTitleChange("Fone Bluetooth com cancelamento de ruído")
@@ -58,7 +58,11 @@ class PostDealViewModelTest {
         val vm = viewModel()
 
         assertEquals("Ana", vm.state.value.author)
-        assertEquals(listOf("Amazon"), vm.state.value.options?.stores)
+        assertEquals(
+            listOf("Amazon"),
+            vm.state.value.options
+                ?.stores,
+        )
     }
 
     @Test
@@ -66,7 +70,10 @@ class PostDealViewModelTest {
         val vm = viewModel()
         vm.onTitleChange("Oi")
 
-        assertTrue(vm.state.value.visibleErrors.isEmpty())
+        assertTrue(
+            vm.state.value.visibleErrors
+                .isEmpty(),
+        )
 
         vm.submit()
 
@@ -76,19 +83,20 @@ class PostDealViewModelTest {
     }
 
     @Test
-    fun `valid form is sent, name is saved and the new id is emitted`() = runTest {
-        repository.postResult = Result.success(testDeal().copy(id = 10_001))
-        val vm = viewModel()
-        vm.fillValidForm()
-        vm.onAuthorChange("Ana Paula")
+    fun `valid form is sent, name is saved and the new id is emitted`() =
+        runTest {
+            repository.postResult = Result.success(testDeal().copy(id = 10_001))
+            val vm = viewModel()
+            vm.fillValidForm()
+            vm.onAuthorChange("Ana Paula")
 
-        vm.submit()
+            vm.submit()
 
-        assertEquals(10_001L, vm.postedDealId.first())
-        assertEquals("Ana Paula", profile.displayName.first())
-        assertEquals(199.9, repository.postedDrafts.single().price!!, 0.001)
-        assertFalse(vm.state.value.isSubmitting)
-    }
+            assertEquals(10_001L, vm.postedDealId.first())
+            assertEquals("Ana Paula", profile.displayName.first())
+            assertEquals(199.9, repository.postedDrafts.single().price!!, 0.001)
+            assertFalse(vm.state.value.isSubmitting)
+        }
 
     @Test
     fun `network failure keeps the form and shows the error`() {

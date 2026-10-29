@@ -12,7 +12,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DealSearchPagingSourceTest {
-
     private suspend fun firstPage(filters: SearchFilters): PagingSource.LoadResult.Page<Int, com.promoapp.domain.model.Deal> {
         val source = DealSearchPagingSource(FakeDealApi(), filters)
         val result = source.load(PagingSource.LoadParams.Refresh(key = null, loadSize = 20, placeholdersEnabled = false))
@@ -21,43 +20,48 @@ class DealSearchPagingSourceTest {
     }
 
     @Test
-    fun `store filter only returns deals from those stores`() = runTest {
-        val page = firstPage(SearchFilters(stores = setOf("Amazon")))
+    fun `store filter only returns deals from those stores`() =
+        runTest {
+            val page = firstPage(SearchFilters(stores = setOf("Amazon")))
 
-        assertTrue(page.data.isNotEmpty())
-        assertTrue(page.data.all { it.storeName == "Amazon" })
-    }
-
-    @Test
-    fun `price range is respected`() = runTest {
-        val page = firstPage(SearchFilters(minPrice = 100.0, maxPrice = 300.0))
-
-        assertTrue(page.data.isNotEmpty())
-        assertTrue(page.data.all { it.price in 100.0..300.0 })
-    }
+            assertTrue(page.data.isNotEmpty())
+            assertTrue(page.data.all { it.storeName == "Amazon" })
+        }
 
     @Test
-    fun `lowest price sort returns ascending prices`() = runTest {
-        val page = firstPage(SearchFilters(sort = SearchSort.LOWEST_PRICE))
+    fun `price range is respected`() =
+        runTest {
+            val page = firstPage(SearchFilters(minPrice = 100.0, maxPrice = 300.0))
 
-        val prices = page.data.map { it.price }
-        assertEquals(prices.sorted(), prices)
-    }
-
-    @Test
-    fun `query matches titles case-insensitively`() = runTest {
-        val page = firstPage(SearchFilters(query = "fone"))
-
-        assertTrue(page.data.isNotEmpty())
-        assertTrue(page.data.all { it.title.contains("fone", ignoreCase = true) || it.storeName.contains("fone", ignoreCase = true) })
-    }
+            assertTrue(page.data.isNotEmpty())
+            assertTrue(page.data.all { it.price in 100.0..300.0 })
+        }
 
     @Test
-    fun `short page ends pagination`() = runTest {
-        val page = firstPage(SearchFilters(query = "Fone", category = "Áudio", maxPrice = 150.0))
+    fun `lowest price sort returns ascending prices`() =
+        runTest {
+            val page = firstPage(SearchFilters(sort = SearchSort.LOWEST_PRICE))
 
-        assertTrue(page.data.size < 20)
-        assertNull(page.nextKey)
-        assertNull(page.prevKey)
-    }
+            val prices = page.data.map { it.price }
+            assertEquals(prices.sorted(), prices)
+        }
+
+    @Test
+    fun `query matches titles case-insensitively`() =
+        runTest {
+            val page = firstPage(SearchFilters(query = "fone"))
+
+            assertTrue(page.data.isNotEmpty())
+            assertTrue(page.data.all { it.title.contains("fone", ignoreCase = true) || it.storeName.contains("fone", ignoreCase = true) })
+        }
+
+    @Test
+    fun `short page ends pagination`() =
+        runTest {
+            val page = firstPage(SearchFilters(query = "Fone", category = "Áudio", maxPrice = 150.0))
+
+            assertTrue(page.data.size < 20)
+            assertNull(page.nextKey)
+            assertNull(page.prevKey)
+        }
 }

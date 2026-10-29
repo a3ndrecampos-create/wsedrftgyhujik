@@ -9,17 +9,18 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-class ProfileRepositoryImpl @Inject constructor(
-    private val dataStore: DataStore<Preferences>,
-) : ProfileRepository {
+class ProfileRepositoryImpl
+    @Inject
+    constructor(
+        private val dataStore: DataStore<Preferences>,
+    ) : ProfileRepository {
+        override val displayName: Flow<String> = dataStore.data.map { it[DISPLAY_NAME].orEmpty() }
 
-    override val displayName: Flow<String> = dataStore.data.map { it[DISPLAY_NAME].orEmpty() }
+        override suspend fun setDisplayName(name: String) {
+            dataStore.edit { it[DISPLAY_NAME] = name.trim() }
+        }
 
-    override suspend fun setDisplayName(name: String) {
-        dataStore.edit { it[DISPLAY_NAME] = name.trim() }
+        private companion object {
+            val DISPLAY_NAME = stringPreferencesKey("display_name")
+        }
     }
-
-    private companion object {
-        val DISPLAY_NAME = stringPreferencesKey("display_name")
-    }
-}

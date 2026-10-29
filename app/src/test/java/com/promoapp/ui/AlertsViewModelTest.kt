@@ -22,17 +22,25 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AlertsViewModelTest {
-
-    private class FakeAlertRepository(initial: List<PriceAlert>) : AlertRepository {
+    private class FakeAlertRepository(
+        initial: List<PriceAlert>,
+    ) : AlertRepository {
         val alerts = MutableStateFlow(initial)
         var checkCalls = 0
 
         override fun observeAlerts(): Flow<List<PriceAlert>> = alerts
+
         override fun observeAlert(dealId: Long): Flow<PriceAlert?> = alerts.map { list -> list.firstOrNull { it.dealId == dealId } }
-        override suspend fun createAlert(deal: Deal, targetPrice: Double) = Unit
+
+        override suspend fun createAlert(
+            deal: Deal,
+            targetPrice: Double,
+        ) = Unit
+
         override suspend fun deleteAlert(dealId: Long) {
             alerts.value = alerts.value.filterNot { it.dealId == dealId }
         }
+
         override suspend fun checkAlerts(): List<PriceAlert> {
             checkCalls++
             return emptyList()
@@ -52,24 +60,26 @@ class AlertsViewModelTest {
     }
 
     @Test
-    fun `delete removes the alert from the list`() = runTest {
-        val repository = FakeAlertRepository(listOf(alert(1), alert(2)))
-        val viewModel = AlertsViewModel(repository)
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.alerts.collect {} }
+    fun `delete removes the alert from the list`() =
+        runTest {
+            val repository = FakeAlertRepository(listOf(alert(1), alert(2)))
+            val viewModel = AlertsViewModel(repository)
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.alerts.collect {} }
 
-        viewModel.onDelete(1)
+            viewModel.onDelete(1)
 
-        assertEquals(listOf(2L), viewModel.alerts.value?.map { it.dealId })
-    }
+            assertEquals(listOf(2L), viewModel.alerts.value?.map { it.dealId })
+        }
 
     @Test
-    fun `check now calls the repository and releases the button`() = runTest {
-        val repository = FakeAlertRepository(listOf(alert(1)))
-        val viewModel = AlertsViewModel(repository)
+    fun `check now calls the repository and releases the button`() =
+        runTest {
+            val repository = FakeAlertRepository(listOf(alert(1)))
+            val viewModel = AlertsViewModel(repository)
 
-        viewModel.onCheckNow()
+            viewModel.onCheckNow()
 
-        assertEquals(1, repository.checkCalls)
-        assertFalse(viewModel.isChecking.value)
-    }
+            assertEquals(1, repository.checkCalls)
+            assertFalse(viewModel.isChecking.value)
+        }
 }

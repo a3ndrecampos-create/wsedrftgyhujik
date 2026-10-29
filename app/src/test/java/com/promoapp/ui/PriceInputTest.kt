@@ -7,7 +7,6 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class PriceInputTest {
-
     @Test
     fun `comma and dot are both accepted`() {
         assertEquals(12.5, parsePrice("12,50")!!, 0.001)

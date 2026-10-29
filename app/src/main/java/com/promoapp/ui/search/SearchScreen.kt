@@ -88,27 +88,30 @@ fun SearchScreen(
 
         when {
             !hasCriteria -> CenteredMessage(R.string.search_prompt)
-            isEmpty && refreshState is LoadState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-            isEmpty && refreshState is LoadState.Error -> Column(
-                Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(stringResource(R.string.load_error))
-                Button(onClick = { results.refresh() }, modifier = Modifier.padding(top = 12.dp)) {
-                    Text(stringResource(R.string.retry))
+            isEmpty && refreshState is LoadState.Loading ->
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
-            }
+            isEmpty && refreshState is LoadState.Error ->
+                Column(
+                    Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(stringResource(R.string.load_error))
+                    Button(onClick = { results.refresh() }, modifier = Modifier.padding(top = 12.dp)) {
+                        Text(stringResource(R.string.retry))
+                    }
+                }
             isEmpty && refreshState is LoadState.NotLoading -> CenteredMessage(R.string.search_empty)
-            else -> DealList(
-                deals = results,
-                favorites = favorites,
-                onDealClick = onDealClick,
-                onToggleFavorite = viewModel::onToggleFavorite,
-                modifier = Modifier.fillMaxSize(),
-            )
+            else ->
+                DealList(
+                    deals = results,
+                    favorites = favorites,
+                    onDealClick = onDealClick,
+                    onToggleFavorite = viewModel::onToggleFavorite,
+                    modifier = Modifier.fillMaxSize(),
+                )
         }
     }
 
@@ -126,7 +129,9 @@ fun SearchScreen(
 }
 
 @Composable
-private fun CenteredMessage(@StringRes textRes: Int) {
+private fun CenteredMessage(
+    @StringRes textRes: Int,
+) {
     Box(Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
         Text(stringResource(textRes))
     }

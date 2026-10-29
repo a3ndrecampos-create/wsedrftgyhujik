@@ -20,49 +20,57 @@ import javax.inject.Inject
 
 sealed interface DealDetailUiState {
     data object Loading : DealDetailUiState
+
     data object Error : DealDetailUiState
-    data class Success(val detail: DealDetail) : DealDetailUiState
+
+    data class Success(
+        val detail: DealDetail,
+    ) : DealDetailUiState
 }
 
 @HiltViewModel
-class DealDetailViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
-    private val getDealDetail: GetDealDetailUseCase,
-    private val alerts: AlertRepository,
-) : ViewModel() {
+class DealDetailViewModel
+    @Inject
+    constructor(
+        savedStateHandle: SavedStateHandle,
+        private val getDealDetail: GetDealDetailUseCase,
+        private val alerts: AlertRepository,
+    ) : ViewModel() {
+        private val dealId = savedStateHandle.toRoute<DealDetailRoute>().dealId
 
-    private val dealId = savedStateHandle.toRoute<DealDetailRoute>().dealId
+        private val _state = MutableStateFlow<DealDetailUiState>(DealDetailUiState.Loading)
+        val state: StateFlow<DealDetailUiState> = _state.asStateFlow()
 
-    private val _state = MutableStateFlow<DealDetailUiState>(DealDetailUiState.Loading)
-    val state: StateFlow<DealDetailUiState> = _state.asStateFlow()
+        val alert: StateFlow<PriceAlert?> =
+            alerts
+                .observeAlert(dealId)
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), null)
 
-    val alert: StateFlow<PriceAlert?> = alerts.observeAlert(dealId)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), null)
+        init {
+            load()
+        }
 
-    init {
-        load()
-    }
+        fun load() {
+            _state.value = DealDetailUiState.Loading
+            viewModelScope.launch {
+                _state.value =
+                    getDealDetail(dealId).fold(
+                        onSuccess = { DealDetailUiState.Success(it) },
+                        onFailure = { DealDetailUiState.Error },
+                    )
+            }
+        }
 
-    fun load() {
-        _state.value = DealDetailUiState.Loading
-        viewModelScope.launch {
-            _state.value = getDealDetail(dealId).fold(
-                onSuccess = { DealDetailUiState.Success(it) },
-                onFailure = { DealDetailUiState.Error },
-            )
+        fun onCreateAlert(targetPrice: Double) {
+            val deal = (_state.value as? DealDetailUiState.Success)?.detail?.deal ?: return
+            viewModelScope.launch { alerts.createAlert(deal, targetPrice) }
+        }
+
+        fun onRemoveAlert() {
+            viewModelScope.launch { alerts.deleteAlert(dealId) }
+        }
+
+        private companion object {
+            const val STOP_TIMEOUT_MS = 5_000L
         }
     }
-
-    fun onCreateAlert(targetPrice: Double) {
-        val deal = (_state.value as? DealDetailUiState.Success)?.detail?.deal ?: return
-        viewModelScope.launch { alerts.createAlert(deal, targetPrice) }
-    }
-
-    fun onRemoveAlert() {
-        viewModelScope.launch { alerts.deleteAlert(dealId) }
-    }
-
-    private companion object {
-        const val STOP_TIMEOUT_MS = 5_000L
-    }
-}

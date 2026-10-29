@@ -27,9 +27,10 @@ fun DailyDealsToggle(
 ) {
     val context = LocalContext.current
     // Sem a permissão de notificação (Android 13+) o aviso não apareceria, então o botão só liga se ela for concedida.
-    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        onChange(granted)
-    }
+    val permissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            onChange(granted)
+        }
 
     Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
@@ -43,9 +44,11 @@ fun DailyDealsToggle(
         Switch(
             checked = enabled,
             onCheckedChange = { wantsOn ->
-                val needsPermission = wantsOn && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                    ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
-                    PackageManager.PERMISSION_GRANTED
+                val needsPermission =
+                    wantsOn &&
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+                        PackageManager.PERMISSION_GRANTED
                 if (needsPermission) permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) else onChange(wantsOn)
             },
         )

@@ -22,30 +22,34 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(
-    getDeals: GetDealsUseCase,
-    private val repository: DealRepository,
-) : ViewModel() {
+class HomeViewModel
+    @Inject
+    constructor(
+        getDeals: GetDealsUseCase,
+        private val repository: DealRepository,
+    ) : ViewModel() {
+        private val _tab = MutableStateFlow(DealTab.FOR_YOU)
+        val tab: StateFlow<DealTab> = _tab.asStateFlow()
 
-    private val _tab = MutableStateFlow(DealTab.FOR_YOU)
-    val tab: StateFlow<DealTab> = _tab.asStateFlow()
+        @OptIn(ExperimentalCoroutinesApi::class)
+        val deals: Flow<PagingData<Deal>> =
+            _tab
+                .flatMapLatest { getDeals(it) }
+                .cachedIn(viewModelScope)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val deals: Flow<PagingData<Deal>> = _tab
-        .flatMapLatest { getDeals(it) }
-        .cachedIn(viewModelScope)
+        val favoriteIds: StateFlow<Set<Long>> =
+            repository
+                .observeFavoriteIds()
+                .map { it.toSet() }
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
 
-    val favoriteIds: StateFlow<Set<Long>> = repository.observeFavoriteIds()
-        .map { it.toSet() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
+        fun onTabSelected(tab: DealTab) {
+            _tab.value = tab
+        }
 
-    fun onTabSelected(tab: DealTab) {
-        _tab.value = tab
-    }
-
-    fun onToggleFavorite(dealId: Long) {
-        viewModelScope.launch {
-            repository.setFavorite(dealId, favorite = dealId !in favoriteIds.value)
+        fun onToggleFavorite(dealId: Long) {
+            viewModelScope.launch {
+                repository.setFavorite(dealId, favorite = dealId !in favoriteIds.value)
+            }
         }
     }
-}

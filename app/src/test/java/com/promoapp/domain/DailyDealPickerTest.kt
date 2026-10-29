@@ -6,9 +6,12 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class DailyDealPickerTest {
-
-    private fun deal(id: Long, price: Double, original: Double?, postedAt: Long = 0) =
-        testDeal(price = price, originalPrice = original).copy(id = id, postedAtMillis = postedAt)
+    private fun deal(
+        id: Long,
+        price: Double,
+        original: Double?,
+        postedAt: Long = 0,
+    ) = testDeal(price = price, originalPrice = original).copy(id = id, postedAtMillis = postedAt)
 
     @Test
     fun `picks the biggest discount`() {

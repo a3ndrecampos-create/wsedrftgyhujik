@@ -15,11 +15,13 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
-
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
-        Room.databaseBuilder(context, AppDatabase::class.java, "promoapp.db")
+    fun provideDatabase(
+        @ApplicationContext context: Context,
+    ): AppDatabase =
+        Room
+            .databaseBuilder(context, AppDatabase::class.java, "promoapp.db")
             // As versões 1 e 2 nunca foram publicadas. A partir do primeiro release, use Migrations
             // reais (os schemas exportados ficam em app/schemas) em vez de recriar o banco.
             .fallbackToDestructiveMigrationFrom(1, 2)

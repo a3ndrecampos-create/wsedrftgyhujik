@@ -21,22 +21,36 @@ class FakeDealRepository : DealRepository {
     val postedDrafts = mutableListOf<DealDraft>()
 
     override fun getDeals(tab: DealTab): Flow<PagingData<Deal>> = emptyFlow()
+
     override fun searchDeals(filters: SearchFilters): Flow<PagingData<Deal>> = emptyFlow()
+
     override suspend fun getFilterOptions(): Result<FilterOptions> = filterOptions
+
     override suspend fun getDealDetail(id: Long): Result<DealDetail> = error("não usado nestes testes")
+
     override suspend fun postDeal(draft: DealDraft): Result<Deal> {
         postedDrafts += draft
         return postResult
     }
+
     override suspend fun getMyDeals(): Result<List<Deal>> = Result.success(emptyList())
+
     override suspend fun getDailyCandidates(): Result<List<Deal>> = Result.success(emptyList())
+
     override fun observeFavoriteIds(): Flow<List<Long>> = flowOf(emptyList())
-    override suspend fun setFavorite(dealId: Long, favorite: Boolean) = Unit
+
+    override suspend fun setFavorite(
+        dealId: Long,
+        favorite: Boolean,
+    ) = Unit
 }
 
-class FakeProfileRepository(initialName: String = "") : ProfileRepository {
+class FakeProfileRepository(
+    initialName: String = "",
+) : ProfileRepository {
     private val name = MutableStateFlow(initialName)
     override val displayName: Flow<String> = name
+
     override suspend fun setDisplayName(name: String) {
         this.name.value = name
     }

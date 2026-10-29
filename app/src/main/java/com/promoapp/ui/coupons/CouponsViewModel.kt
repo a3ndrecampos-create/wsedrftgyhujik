@@ -14,7 +14,9 @@ import javax.inject.Inject
 
 sealed interface CouponsUiState {
     data object Loading : CouponsUiState
+
     data object Error : CouponsUiState
+
     data class Success(
         val coupons: List<Coupon>,
         val stores: List<String>,
@@ -23,48 +25,51 @@ sealed interface CouponsUiState {
 }
 
 @HiltViewModel
-class CouponsViewModel @Inject constructor(
-    private val getCoupons: GetCouponsUseCase,
-) : ViewModel() {
+class CouponsViewModel
+    @Inject
+    constructor(
+        private val getCoupons: GetCouponsUseCase,
+    ) : ViewModel() {
+        private val _state = MutableStateFlow<CouponsUiState>(CouponsUiState.Loading)
+        val state: StateFlow<CouponsUiState> = _state.asStateFlow()
 
-    private val _state = MutableStateFlow<CouponsUiState>(CouponsUiState.Loading)
-    val state: StateFlow<CouponsUiState> = _state.asStateFlow()
+        private var allCoupons: List<Coupon> = emptyList()
+        private var selectedStore: String? = null
 
-    private var allCoupons: List<Coupon> = emptyList()
-    private var selectedStore: String? = null
+        init {
+            load()
+        }
 
-    init {
-        load()
-    }
+        fun load() {
+            _state.value = CouponsUiState.Loading
+            viewModelScope.launch {
+                getCoupons().fold(
+                    onSuccess = {
+                        allCoupons = it
+                        selectedStore = null
+                        publish()
+                    },
+                    onFailure = { _state.value = CouponsUiState.Error },
+                )
+            }
+        }
 
-    fun load() {
-        _state.value = CouponsUiState.Loading
-        viewModelScope.launch {
-            getCoupons().fold(
-                onSuccess = {
-                    allCoupons = it
-                    selectedStore = null
-                    publish()
-                },
-                onFailure = { _state.value = CouponsUiState.Error },
-            )
+        fun onStoreSelected(store: String?) {
+            if (_state.value !is CouponsUiState.Success) return
+            selectedStore = store
+            publish()
+        }
+
+        private fun publish() {
+            val now = System.currentTimeMillis()
+            _state.value =
+                CouponsUiState.Success(
+                    coupons =
+                        allCoupons
+                            .filter { selectedStore == null || it.storeName == selectedStore }
+                            .sortedForDisplay(now),
+                    stores = allCoupons.map { it.storeName }.distinct().sorted(),
+                    selectedStore = selectedStore,
+                )
         }
     }
-
-    fun onStoreSelected(store: String?) {
-        if (_state.value !is CouponsUiState.Success) return
-        selectedStore = store
-        publish()
-    }
-
-    private fun publish() {
-        val now = System.currentTimeMillis()
-        _state.value = CouponsUiState.Success(
-            coupons = allCoupons
-                .filter { selectedStore == null || it.storeName == selectedStore }
-                .sortedForDisplay(now),
-            stores = allCoupons.map { it.storeName }.distinct().sorted(),
-            selectedStore = selectedStore,
-        )
-    }
-}

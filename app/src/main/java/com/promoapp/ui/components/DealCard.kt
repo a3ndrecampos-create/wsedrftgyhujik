@@ -79,9 +79,10 @@ fun DealCard(
                     IconButton(onClick = onToggleFavorite) {
                         Icon(
                             imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                            contentDescription = stringResource(
-                                if (isFavorite) R.string.wishlist_remove else R.string.wishlist_add,
-                            ),
+                            contentDescription =
+                                stringResource(
+                                    if (isFavorite) R.string.wishlist_remove else R.string.wishlist_add,
+                                ),
                             tint = MaterialTheme.colorScheme.primary,
                         )
                     }
@@ -91,20 +92,21 @@ fun DealCard(
     }
 }
 
-private val previewDeal = Deal(
-    id = 1,
-    title = "Fone Bluetooth ANC com cancelamento de ruído",
-    imageUrl = "",
-    storeName = "Amazon",
-    price = 299.90,
-    originalPrice = 599.0,
-    authorName = "Marcos",
-    postedAtMillis = System.currentTimeMillis() - 5 * 60_000,
-    temperature = 150,
-    commentCount = 4,
-    tags = listOf("Frete Grátis", "Cupom"),
-    url = "https://example.com",
-)
+private val previewDeal =
+    Deal(
+        id = 1,
+        title = "Fone Bluetooth ANC com cancelamento de ruído",
+        imageUrl = "",
+        storeName = "Amazon",
+        price = 299.90,
+        originalPrice = 599.0,
+        authorName = "Marcos",
+        postedAtMillis = System.currentTimeMillis() - 5 * 60_000,
+        temperature = 150,
+        commentCount = 4,
+        tags = listOf("Frete Grátis", "Cupom"),
+        url = "https://example.com",
+    )
 
 @Preview(showBackground = true)
 @Composable

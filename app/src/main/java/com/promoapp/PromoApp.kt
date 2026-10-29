@@ -10,8 +10,9 @@ import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
 @HiltAndroidApp
-class PromoApp : Application(), Configuration.Provider {
-
+class PromoApp :
+    Application(),
+    Configuration.Provider {
     @Inject lateinit var workerFactory: HiltWorkerFactory
 
     @Inject lateinit var priceAlertScheduler: PriceAlertScheduler

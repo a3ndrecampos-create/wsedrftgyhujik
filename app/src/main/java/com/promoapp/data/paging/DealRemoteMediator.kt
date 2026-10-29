@@ -25,7 +25,6 @@ class DealRemoteMediator(
     private val database: AppDatabase,
     private val now: () -> Long = System::currentTimeMillis,
 ) : RemoteMediator<Int, CachedDealEntity>() {
-
     private val tabKey = tab.name
     private val dealDao = database.cachedDealDao()
     private val keyDao = database.remoteKeyDao()
@@ -36,15 +35,19 @@ class DealRemoteMediator(
         return if (isFresh) InitializeAction.SKIP_INITIAL_REFRESH else InitializeAction.LAUNCH_INITIAL_REFRESH
     }
 
-    override suspend fun load(loadType: LoadType, state: PagingState<Int, CachedDealEntity>): MediatorResult {
-        val page = when (loadType) {
-            LoadType.REFRESH -> FIRST_PAGE
-            LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
-            LoadType.APPEND -> {
-                val key = keyDao.get(tabKey) ?: return MediatorResult.Success(endOfPaginationReached = false)
-                key.nextPage ?: return MediatorResult.Success(endOfPaginationReached = true)
+    override suspend fun load(
+        loadType: LoadType,
+        state: PagingState<Int, CachedDealEntity>,
+    ): MediatorResult {
+        val page =
+            when (loadType) {
+                LoadType.REFRESH -> FIRST_PAGE
+                LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
+                LoadType.APPEND -> {
+                    val key = keyDao.get(tabKey) ?: return MediatorResult.Success(endOfPaginationReached = false)
+                    key.nextPage ?: return MediatorResult.Success(endOfPaginationReached = true)
+                }
             }
-        }
 
         return try {
             val pageSize = state.config.pageSize

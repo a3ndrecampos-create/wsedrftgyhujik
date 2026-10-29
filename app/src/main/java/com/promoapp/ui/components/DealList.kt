@@ -45,14 +45,16 @@ fun DealList(
             }
         }
         when (deals.loadState.append) {
-            is LoadState.Loading -> item {
-                Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+            is LoadState.Loading ->
+                item {
+                    Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
                 }
-            }
-            is LoadState.Error -> item {
-                TextButton(onClick = { deals.retry() }) { Text(stringResource(R.string.load_more_error)) }
-            }
+            is LoadState.Error ->
+                item {
+                    TextButton(onClick = { deals.retry() }) { Text(stringResource(R.string.load_more_error)) }
+                }
             else -> Unit
         }
     }

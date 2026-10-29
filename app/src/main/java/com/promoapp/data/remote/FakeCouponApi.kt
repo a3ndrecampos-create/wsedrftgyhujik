@@ -4,16 +4,16 @@ import kotlinx.coroutines.delay
 
 /** Gera 12 cupons com validades variadas: expirado, vencendo em horas, em dias e sem data. */
 class FakeCouponApi : CouponApi {
-
     private val stores = listOf("Amazon", "Mercado Livre", "Magalu", "Shopee", "KaBuM!")
     private val prefixes = listOf("PROMO", "ECONOMIZE", "BEMVINDO", "FRETEJA")
     private val discounts = listOf("10% OFF", "R$ 50 OFF", "15% OFF", "Frete grátis")
-    private val descriptions = listOf(
-        "Válido em itens selecionados",
-        "Primeira compra pelo app",
-        "Em toda a loja, exceto eletrônicos",
-        "Para pagamentos no Pix",
-    )
+    private val descriptions =
+        listOf(
+            "Válido em itens selecionados",
+            "Primeira compra pelo app",
+            "Em toda a loja, exceto eletrônicos",
+            "Para pagamentos no Pix",
+        )
 
     override suspend fun getCoupons(): List<CouponDto> {
         delay(NETWORK_DELAY_MS)
@@ -27,12 +27,13 @@ class FakeCouponApi : CouponApi {
                 description = descriptions[index % descriptions.size],
                 discountLabel = discounts[index % discounts.size],
                 minPurchase = if (index % 2 == 0) null else 150.0 + index * 10,
-                expiresAtMillis = when (index % 4) {
-                    0 -> now - HOUR_MS
-                    1 -> now + 3 * HOUR_MS
-                    2 -> now + 5 * DAY_MS
-                    else -> null
-                },
+                expiresAtMillis =
+                    when (index % 4) {
+                        0 -> now - HOUR_MS
+                        1 -> now + 3 * HOUR_MS
+                        2 -> now + 5 * DAY_MS
+                        else -> null
+                    },
                 url = "https://example.com/cupom/$id",
             )
         }

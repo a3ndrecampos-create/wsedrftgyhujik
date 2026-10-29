@@ -49,19 +49,21 @@ fun CouponsScreen(viewModel: CouponsViewModel = hiltViewModel()) {
         contentWindowInsets = WindowInsets.statusBars,
     ) { padding ->
         when (val current = state) {
-            CouponsUiState.Loading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-            CouponsUiState.Error -> Column(
-                Modifier.fillMaxSize().padding(padding),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(stringResource(R.string.coupons_load_error))
-                Button(onClick = viewModel::load, modifier = Modifier.padding(top = 12.dp)) {
-                    Text(stringResource(R.string.retry))
+            CouponsUiState.Loading ->
+                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
-            }
+            CouponsUiState.Error ->
+                Column(
+                    Modifier.fillMaxSize().padding(padding),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(stringResource(R.string.coupons_load_error))
+                    Button(onClick = viewModel::load, modifier = Modifier.padding(top = 12.dp)) {
+                        Text(stringResource(R.string.retry))
+                    }
+                }
             is CouponsUiState.Success -> {
                 val now = remember(current) { System.currentTimeMillis() }
                 Column(Modifier.padding(padding)) {

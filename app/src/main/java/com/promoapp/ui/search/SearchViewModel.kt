@@ -29,62 +29,68 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SearchViewModel @Inject constructor(
-    searchDeals: SearchDealsUseCase,
-    getFilterOptions: GetFilterOptionsUseCase,
-    private val repository: DealRepository,
-) : ViewModel() {
+class SearchViewModel
+    @Inject
+    constructor(
+        searchDeals: SearchDealsUseCase,
+        getFilterOptions: GetFilterOptionsUseCase,
+        private val repository: DealRepository,
+    ) : ViewModel() {
+        private val _query = MutableStateFlow("")
+        val query: StateFlow<String> = _query.asStateFlow()
 
-    private val _query = MutableStateFlow("")
-    val query: StateFlow<String> = _query.asStateFlow()
+        /** Filtros aplicados. O texto da busca fica separado em [query] (com debounce). */
+        private val _filters = MutableStateFlow(SearchFilters())
+        val filters: StateFlow<SearchFilters> = _filters.asStateFlow()
 
-    /** Filtros aplicados. O texto da busca fica separado em [query] (com debounce). */
-    private val _filters = MutableStateFlow(SearchFilters())
-    val filters: StateFlow<SearchFilters> = _filters.asStateFlow()
+        private val _options = MutableStateFlow<FilterOptions?>(null)
+        val options: StateFlow<FilterOptions?> = _options.asStateFlow()
 
-    private val _options = MutableStateFlow<FilterOptions?>(null)
-    val options: StateFlow<FilterOptions?> = _options.asStateFlow()
+        @OptIn(FlowPreview::class)
+        private val criteria: Flow<SearchFilters> =
+            combine(
+                _query.debounce(DEBOUNCE_MS).distinctUntilChanged(),
+                _filters,
+            ) { text, filters -> filters.copy(query = text.trim()) }
+                .distinctUntilChanged()
 
-    @OptIn(FlowPreview::class)
-    private val criteria: Flow<SearchFilters> = combine(
-        _query.debounce(DEBOUNCE_MS).distinctUntilChanged(),
-        _filters,
-    ) { text, filters -> filters.copy(query = text.trim()) }
-        .distinctUntilChanged()
+        val hasCriteria: StateFlow<Boolean> =
+            criteria
+                .map { it.hasCriteria }
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), false)
 
-    val hasCriteria: StateFlow<Boolean> = criteria
-        .map { it.hasCriteria }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), false)
+        @OptIn(ExperimentalCoroutinesApi::class)
+        val results: Flow<PagingData<Deal>> =
+            criteria
+                .flatMapLatest { if (it.hasCriteria) searchDeals(it) else flowOf(PagingData.empty()) }
+                .cachedIn(viewModelScope)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val results: Flow<PagingData<Deal>> = criteria
-        .flatMapLatest { if (it.hasCriteria) searchDeals(it) else flowOf(PagingData.empty()) }
-        .cachedIn(viewModelScope)
+        val favoriteIds: StateFlow<Set<Long>> =
+            repository
+                .observeFavoriteIds()
+                .map { it.toSet() }
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptySet())
 
-    val favoriteIds: StateFlow<Set<Long>> = repository.observeFavoriteIds()
-        .map { it.toSet() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptySet())
+        init {
+            viewModelScope.launch { _options.value = getFilterOptions().getOrNull() }
+        }
 
-    init {
-        viewModelScope.launch { _options.value = getFilterOptions().getOrNull() }
-    }
+        fun onQueryChange(text: String) {
+            _query.value = text
+        }
 
-    fun onQueryChange(text: String) {
-        _query.value = text
-    }
+        fun onFiltersApplied(filters: SearchFilters) {
+            _filters.value = filters.copy(query = "")
+        }
 
-    fun onFiltersApplied(filters: SearchFilters) {
-        _filters.value = filters.copy(query = "")
-    }
+        fun onToggleFavorite(dealId: Long) {
+            viewModelScope.launch {
+                repository.setFavorite(dealId, favorite = dealId !in favoriteIds.value)
+            }
+        }
 
-    fun onToggleFavorite(dealId: Long) {
-        viewModelScope.launch {
-            repository.setFavorite(dealId, favorite = dealId !in favoriteIds.value)
+        private companion object {
+            const val DEBOUNCE_MS = 400L
+            const val STOP_TIMEOUT_MS = 5_000L
         }
     }
-
-    private companion object {
-        const val DEBOUNCE_MS = 400L
-        const val STOP_TIMEOUT_MS = 5_000L
-    }
-}

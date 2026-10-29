@@ -20,30 +20,38 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
-
     @Provides @Singleton
     fun provideJson(): Json = Json { ignoreUnknownKeys = true }
 
     @Provides @Singleton
-    fun provideOkHttp(): OkHttpClient = OkHttpClient.Builder()
-        .addInterceptor(
-            HttpLoggingInterceptor().apply {
-                level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC
-                else HttpLoggingInterceptor.Level.NONE
-            },
-        )
-        .build()
+    fun provideOkHttp(): OkHttpClient =
+        OkHttpClient
+            .Builder()
+            .addInterceptor(
+                HttpLoggingInterceptor().apply {
+                    level =
+                        if (BuildConfig.DEBUG) {
+                            HttpLoggingInterceptor.Level.BASIC
+                        } else {
+                            HttpLoggingInterceptor.Level.NONE
+                        }
+                },
+            ).build()
 
     @Provides @Singleton
-    fun provideRetrofit(client: OkHttpClient, json: Json): Retrofit = Retrofit.Builder()
-        .baseUrl(BuildConfig.API_BASE_URL)
-        .client(client)
-        .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
-        .build()
+    fun provideRetrofit(
+        client: OkHttpClient,
+        json: Json,
+    ): Retrofit =
+        Retrofit
+            .Builder()
+            .baseUrl(BuildConfig.API_BASE_URL)
+            .client(client)
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
 
     @Provides @Singleton
-    fun provideDealApi(retrofit: Retrofit): DealApi =
-        if (BuildConfig.USE_FAKE_API) FakeDealApi() else retrofit.create(DealApi::class.java)
+    fun provideDealApi(retrofit: Retrofit): DealApi = if (BuildConfig.USE_FAKE_API) FakeDealApi() else retrofit.create(DealApi::class.java)
 
     @Provides
     @Singleton

@@ -17,12 +17,13 @@ data class SearchFilters(
 ) {
     /** Quantidade de filtros ativos, sem contar o texto digitado. */
     val activeFilterCount: Int
-        get() = listOf(
-            stores.isNotEmpty(),
-            category != null,
-            minPrice != null || maxPrice != null,
-            sort != SearchSort.RELEVANCE,
-        ).count { it }
+        get() =
+            listOf(
+                stores.isNotEmpty(),
+                category != null,
+                minPrice != null || maxPrice != null,
+                sort != SearchSort.RELEVANCE,
+            ).count { it }
 
     /** Só vale a pena consultar a API quando há texto ou algum filtro ativo. */
     val hasCriteria: Boolean

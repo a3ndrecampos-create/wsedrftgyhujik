@@ -58,8 +58,9 @@ fun AlertCard(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = "${stringResource(R.string.alert_target, formatBrl(alert.targetPrice))} · " +
-                        stringResource(R.string.alert_current, formatBrl(alert.lastKnownPrice)),
+                    text =
+                        "${stringResource(R.string.alert_target, formatBrl(alert.targetPrice))} · " +
+                            stringResource(R.string.alert_current, formatBrl(alert.lastKnownPrice)),
                     style = MaterialTheme.typography.bodySmall,
                 )
                 StatusChip(isTriggered = alert.isTriggered)

@@ -65,28 +65,33 @@ fun ProfileScreen(
         Text(stringResource(R.string.profile_my_deals), style = MaterialTheme.typography.titleMedium)
 
         when (val current = myDeals) {
-            MyDealsState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+            MyDealsState.Loading ->
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             MyDealsState.Error -> Text(stringResource(R.string.profile_load_error))
-            is MyDealsState.Success -> if (current.deals.isEmpty()) {
-                Text(stringResource(R.string.profile_my_deals_empty))
-            } else {
-                LazyColumn(
-                    contentPadding = PaddingValues(bottom = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    items(current.deals, key = { it.id }) { deal ->
-                        MyDealCard(deal = deal, onClick = { onDealClick(deal.id) })
+            is MyDealsState.Success ->
+                if (current.deals.isEmpty()) {
+                    Text(stringResource(R.string.profile_my_deals_empty))
+                } else {
+                    LazyColumn(
+                        contentPadding = PaddingValues(bottom = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        items(current.deals, key = { it.id }) { deal ->
+                            MyDealCard(deal = deal, onClick = { onDealClick(deal.id) })
+                        }
                     }
                 }
-            }
         }
     }
 }
 
 @Composable
-private fun MyDealCard(deal: Deal, onClick: () -> Unit) {
+private fun MyDealCard(
+    deal: Deal,
+    onClick: () -> Unit,
+) {
     Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             AsyncImage(

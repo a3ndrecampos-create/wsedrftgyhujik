@@ -15,7 +15,10 @@ import androidx.room.RoomDatabase
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun favoriteDao(): FavoriteDao
+
     abstract fun cachedDealDao(): CachedDealDao
+
     abstract fun remoteKeyDao(): RemoteKeyDao
+
     abstract fun alertDao(): AlertDao
 }

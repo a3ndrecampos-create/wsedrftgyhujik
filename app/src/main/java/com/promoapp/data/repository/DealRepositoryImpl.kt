@@ -28,60 +28,68 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-class DealRepositoryImpl @Inject constructor(
-    private val api: DealApi,
-    private val database: AppDatabase,
-) : DealRepository {
+class DealRepositoryImpl
+    @Inject
+    constructor(
+        private val api: DealApi,
+        private val database: AppDatabase,
+    ) : DealRepository {
+        @OptIn(ExperimentalPagingApi::class)
+        override fun getDeals(tab: DealTab): Flow<PagingData<Deal>> =
+            Pager(
+                config =
+                    PagingConfig(
+                        pageSize = PAGE_SIZE,
+                        initialLoadSize = PAGE_SIZE,
+                        enablePlaceholders = false,
+                    ),
+                remoteMediator = DealRemoteMediator(tab, api, database),
+                pagingSourceFactory = { database.cachedDealDao().pagingSource(tab.name) },
+            ).flow.map { pagingData -> pagingData.map { it.toDomain() } }
 
-    @OptIn(ExperimentalPagingApi::class)
-    override fun getDeals(tab: DealTab): Flow<PagingData<Deal>> = Pager(
-        config = PagingConfig(
-            pageSize = PAGE_SIZE,
-            initialLoadSize = PAGE_SIZE,
-            enablePlaceholders = false,
-        ),
-        remoteMediator = DealRemoteMediator(tab, api, database),
-        pagingSourceFactory = { database.cachedDealDao().pagingSource(tab.name) },
-    ).flow.map { pagingData -> pagingData.map { it.toDomain() } }
+        override fun searchDeals(filters: SearchFilters): Flow<PagingData<Deal>> =
+            Pager(
+                config =
+                    PagingConfig(
+                        pageSize = PAGE_SIZE,
+                        initialLoadSize = PAGE_SIZE,
+                        enablePlaceholders = false,
+                    ),
+                pagingSourceFactory = { DealSearchPagingSource(api, filters) },
+            ).flow
 
-    override fun searchDeals(filters: SearchFilters): Flow<PagingData<Deal>> = Pager(
-        config = PagingConfig(
-            pageSize = PAGE_SIZE,
-            initialLoadSize = PAGE_SIZE,
-            enablePlaceholders = false,
-        ),
-        pagingSourceFactory = { DealSearchPagingSource(api, filters) },
-    ).flow
+        override suspend fun getFilterOptions(): Result<FilterOptions> = safeApiCall { api.getFilterOptions().toDomain() }
 
-    override suspend fun getFilterOptions(): Result<FilterOptions> = safeApiCall { api.getFilterOptions().toDomain() }
+        override suspend fun getDealDetail(id: Long): Result<DealDetail> =
+            safeApiCall {
+                coroutineScope {
+                    val deal = async { api.getDeal(id).toDomain() }
+                    val history = async { api.getPriceHistory(id).map { it.toDomain() } }
+                    DealDetail(deal = deal.await(), history = PriceHistory(history.await()))
+                }
+            }
 
-    override suspend fun getDealDetail(id: Long): Result<DealDetail> = safeApiCall {
-        coroutineScope {
-            val deal = async { api.getDeal(id).toDomain() }
-            val history = async { api.getPriceHistory(id).map { it.toDomain() } }
-            DealDetail(deal = deal.await(), history = PriceHistory(history.await()))
+        override suspend fun postDeal(draft: DealDraft): Result<Deal> =
+            safeApiCall { api.postDeal(draft.toRequest()).toDomain() }
+                .onSuccess { database.cachedDealDao().markAllStale() }
+
+        override suspend fun getDailyCandidates(): Result<List<Deal>> =
+            safeApiCall { api.getDeals("trending", page = 1, pageSize = DAILY_CANDIDATES).map { it.toDomain() } }
+
+        override suspend fun getMyDeals(): Result<List<Deal>> = safeApiCall { api.getMyDeals().map { it.toDomain() } }
+
+        override fun observeFavoriteIds(): Flow<List<Long>> = database.favoriteDao().observeIds()
+
+        override suspend fun setFavorite(
+            dealId: Long,
+            favorite: Boolean,
+        ) {
+            val dao = database.favoriteDao()
+            if (favorite) dao.insert(FavoriteEntity(dealId)) else dao.delete(dealId)
+        }
+
+        private companion object {
+            const val PAGE_SIZE = 20
+            const val DAILY_CANDIDATES = 20
         }
     }
-
-    override suspend fun postDeal(draft: DealDraft): Result<Deal> =
-        safeApiCall { api.postDeal(draft.toRequest()).toDomain() }
-            .onSuccess { database.cachedDealDao().markAllStale() }
-
-    override suspend fun getDailyCandidates(): Result<List<Deal>> =
-        safeApiCall { api.getDeals("trending", page = 1, pageSize = DAILY_CANDIDATES).map { it.toDomain() } }
-
-    override suspend fun getMyDeals(): Result<List<Deal>> =
-        safeApiCall { api.getMyDeals().map { it.toDomain() } }
-
-    override fun observeFavoriteIds(): Flow<List<Long>> = database.favoriteDao().observeIds()
-
-    override suspend fun setFavorite(dealId: Long, favorite: Boolean) {
-        val dao = database.favoriteDao()
-        if (favorite) dao.insert(FavoriteEntity(dealId)) else dao.delete(dealId)
-    }
-
-    private companion object {
-        const val PAGE_SIZE = 20
-        const val DAILY_CANDIDATES = 20
-    }
-}

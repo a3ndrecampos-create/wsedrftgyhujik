@@ -7,11 +7,13 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class CouponTest {
-
     private val now = 1_000_000_000L
     private val hour = 3_600_000L
 
-    private fun coupon(id: Long = 1, expiresAt: Long?) = Coupon(
+    private fun coupon(
+        id: Long = 1,
+        expiresAt: Long?,
+    ) = Coupon(
         id = id,
         code = "CODE$id",
         storeName = "Loja",

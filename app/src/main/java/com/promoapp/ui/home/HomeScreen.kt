@@ -60,32 +60,35 @@ fun HomeScreen(
         }
 
         when {
-            !hasItems && refreshState is LoadState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-            !hasItems && refreshState is LoadState.Error -> Column(
-                Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(stringResource(R.string.load_error))
-                Button(onClick = { deals.refresh() }, modifier = Modifier.padding(top = 12.dp)) {
-                    Text(stringResource(R.string.retry))
+            !hasItems && refreshState is LoadState.Loading ->
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
-            }
-            else -> PullToRefreshBox(
-                isRefreshing = hasItems && refreshState is LoadState.Loading,
-                onRefresh = { deals.refresh() },
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                DealList(
-                    deals = deals,
-                    favorites = favorites,
-                    onDealClick = onDealClick,
-                    onToggleFavorite = viewModel::onToggleFavorite,
+            !hasItems && refreshState is LoadState.Error ->
+                Column(
+                    Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(stringResource(R.string.load_error))
+                    Button(onClick = { deals.refresh() }, modifier = Modifier.padding(top = 12.dp)) {
+                        Text(stringResource(R.string.retry))
+                    }
+                }
+            else ->
+                PullToRefreshBox(
+                    isRefreshing = hasItems && refreshState is LoadState.Loading,
+                    onRefresh = { deals.refresh() },
                     modifier = Modifier.fillMaxSize(),
-                )
-            }
+                ) {
+                    DealList(
+                        deals = deals,
+                        favorites = favorites,
+                        onDealClick = onDealClick,
+                        onToggleFavorite = viewModel::onToggleFavorite,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
         }
     }
 }

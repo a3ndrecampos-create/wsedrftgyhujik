@@ -30,14 +30,20 @@ interface DealApi {
     suspend fun getFilterOptions(): FilterOptionsDto
 
     @POST("deals")
-    suspend fun postDeal(@Body request: NewDealRequest): DealDto
+    suspend fun postDeal(
+        @Body request: NewDealRequest,
+    ): DealDto
 
     @GET("deals/mine")
     suspend fun getMyDeals(): List<DealDto>
 
     @GET("deals/{id}")
-    suspend fun getDeal(@Path("id") id: Long): DealDto
+    suspend fun getDeal(
+        @Path("id") id: Long,
+    ): DealDto
 
     @GET("deals/{id}/price-history")
-    suspend fun getPriceHistory(@Path("id") id: Long): List<PricePointDto>
+    suspend fun getPriceHistory(
+        @Path("id") id: Long,
+    ): List<PricePointDto>
 }

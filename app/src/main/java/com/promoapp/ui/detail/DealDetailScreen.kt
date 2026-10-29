@@ -77,27 +77,30 @@ fun DealDetailScreen(
         },
     ) { padding ->
         when (val current = state) {
-            DealDetailUiState.Loading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-            DealDetailUiState.Error -> Column(
-                Modifier.fillMaxSize().padding(padding),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(stringResource(R.string.load_error))
-                Button(onClick = viewModel::load, modifier = Modifier.padding(top = 12.dp)) {
-                    Text(stringResource(R.string.retry))
+            DealDetailUiState.Loading ->
+                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
-            }
-            is DealDetailUiState.Success -> DealDetailContent(
-                detail = current.detail,
-                alert = alert,
-                onOpenStore = { uriHandler.openUri(current.detail.deal.url) },
-                onCreateAlert = viewModel::onCreateAlert,
-                onRemoveAlert = viewModel::onRemoveAlert,
-                modifier = Modifier.padding(padding),
-            )
+            DealDetailUiState.Error ->
+                Column(
+                    Modifier.fillMaxSize().padding(padding),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(stringResource(R.string.load_error))
+                    Button(onClick = viewModel::load, modifier = Modifier.padding(top = 12.dp)) {
+                        Text(stringResource(R.string.retry))
+                    }
+                }
+            is DealDetailUiState.Success ->
+                DealDetailContent(
+                    detail = current.detail,
+                    alert = alert,
+                    onOpenStore = { uriHandler.openUri(current.detail.deal.url) },
+                    onCreateAlert = viewModel::onCreateAlert,
+                    onRemoveAlert = viewModel::onRemoveAlert,
+                    modifier = Modifier.padding(padding),
+                )
         }
     }
 }
@@ -113,20 +116,22 @@ private fun DealDetailContent(
 ) {
     val deal = detail.deal
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         AsyncImage(
             model = deal.imageUrl,
             contentDescription = deal.title,
             contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1.5f)
-                .clip(RoundedCornerShape(16.dp)),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1.5f)
+                    .clip(RoundedCornerShape(16.dp)),
         )
         Text(
             text = deal.storeName,
@@ -150,17 +155,17 @@ private fun DealDetailContent(
         }
 
         if (detail.history.points.isNotEmpty()) {
-        Card(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(stringResource(R.string.price_history_title), style = MaterialTheme.typography.titleSmall)
-                PriceChart(points = detail.history.points)
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    PriceStat(R.string.price_lowest, detail.history.lowest)
-                    PriceStat(R.string.price_average, detail.history.average)
-                    PriceStat(R.string.price_highest, detail.history.highest)
+            Card(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(stringResource(R.string.price_history_title), style = MaterialTheme.typography.titleSmall)
+                    PriceChart(points = detail.history.points)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        PriceStat(R.string.price_lowest, detail.history.lowest)
+                        PriceStat(R.string.price_average, detail.history.average)
+                        PriceStat(R.string.price_highest, detail.history.highest)
+                    }
                 }
             }
-        }
         }
 
         PriceAlertSection(
@@ -177,7 +182,10 @@ private fun DealDetailContent(
 }
 
 @Composable
-private fun PriceStat(@StringRes labelRes: Int, value: Double?) {
+private fun PriceStat(
+    @StringRes labelRes: Int,
+    value: Double?,
+) {
     Column {
         Text(
             text = stringResource(labelRes),
@@ -193,28 +201,33 @@ private fun PriceStat(@StringRes labelRes: Int, value: Double?) {
 
 @Composable
 private fun VerdictBadge(verdict: PriceVerdict) {
-    val (labelRes, container, content) = when (verdict) {
-        PriceVerdict.LOWEST_EVER -> Triple(
-            R.string.verdict_lowest_ever,
-            MaterialTheme.colorScheme.primaryContainer,
-            MaterialTheme.colorScheme.onPrimaryContainer,
-        )
-        PriceVerdict.GOOD_PRICE -> Triple(
-            R.string.verdict_good_price,
-            MaterialTheme.colorScheme.primaryContainer,
-            MaterialTheme.colorScheme.onPrimaryContainer,
-        )
-        PriceVerdict.FAIR_PRICE -> Triple(
-            R.string.verdict_fair_price,
-            MaterialTheme.colorScheme.secondaryContainer,
-            MaterialTheme.colorScheme.onSecondaryContainer,
-        )
-        PriceVerdict.ABOVE_AVERAGE -> Triple(
-            R.string.verdict_above_average,
-            MaterialTheme.colorScheme.errorContainer,
-            MaterialTheme.colorScheme.onErrorContainer,
-        )
-    }
+    val (labelRes, container, content) =
+        when (verdict) {
+            PriceVerdict.LOWEST_EVER ->
+                Triple(
+                    R.string.verdict_lowest_ever,
+                    MaterialTheme.colorScheme.primaryContainer,
+                    MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            PriceVerdict.GOOD_PRICE ->
+                Triple(
+                    R.string.verdict_good_price,
+                    MaterialTheme.colorScheme.primaryContainer,
+                    MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            PriceVerdict.FAIR_PRICE ->
+                Triple(
+                    R.string.verdict_fair_price,
+                    MaterialTheme.colorScheme.secondaryContainer,
+                    MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+            PriceVerdict.ABOVE_AVERAGE ->
+                Triple(
+                    R.string.verdict_above_average,
+                    MaterialTheme.colorScheme.errorContainer,
+                    MaterialTheme.colorScheme.onErrorContainer,
+                )
+        }
     Surface(shape = RoundedCornerShape(50), color = container) {
         Text(
             text = stringResource(labelRes),

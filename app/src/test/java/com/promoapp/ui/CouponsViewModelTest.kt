@@ -19,14 +19,19 @@ import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CouponsViewModelTest {
-
-    private class FakeCouponRepository(var result: Result<List<Coupon>>) : CouponRepository {
+    private class FakeCouponRepository(
+        var result: Result<List<Coupon>>,
+    ) : CouponRepository {
         override suspend fun getCoupons(): Result<List<Coupon>> = result
     }
 
     private val hour = 3_600_000L
 
-    private fun coupon(id: Long, store: String, expiresInHours: Long?) = Coupon(
+    private fun coupon(
+        id: Long,
+        store: String,
+        expiresInHours: Long?,
+    ) = Coupon(
         id = id,
         code = "CODE$id",
         storeName = store,
@@ -49,15 +54,16 @@ class CouponsViewModelTest {
 
     @Test
     fun `loads coupons sorted with expired last and lists stores`() {
-        val repository = FakeCouponRepository(
-            Result.success(
-                listOf(
-                    coupon(1, "Magalu", expiresInHours = -2),
-                    coupon(2, "Amazon", expiresInHours = 100),
-                    coupon(3, "Amazon", expiresInHours = 3),
+        val repository =
+            FakeCouponRepository(
+                Result.success(
+                    listOf(
+                        coupon(1, "Magalu", expiresInHours = -2),
+                        coupon(2, "Amazon", expiresInHours = 100),
+                        coupon(3, "Amazon", expiresInHours = 3),
+                    ),
                 ),
-            ),
-        )
+            )
 
         val viewModel = CouponsViewModel(GetCouponsUseCase(repository))
 
@@ -68,14 +74,15 @@ class CouponsViewModelTest {
 
     @Test
     fun `selecting a store filters the list and null clears it`() {
-        val repository = FakeCouponRepository(
-            Result.success(
-                listOf(
-                    coupon(1, "Magalu", expiresInHours = 100),
-                    coupon(2, "Amazon", expiresInHours = 100),
+        val repository =
+            FakeCouponRepository(
+                Result.success(
+                    listOf(
+                        coupon(1, "Magalu", expiresInHours = 100),
+                        coupon(2, "Amazon", expiresInHours = 100),
+                    ),
                 ),
-            ),
-        )
+            )
         val viewModel = CouponsViewModel(GetCouponsUseCase(repository))
 
         viewModel.onStoreSelected("Amazon")

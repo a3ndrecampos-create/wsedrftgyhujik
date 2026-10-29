@@ -12,7 +12,9 @@ enum class PriceVerdict {
     ABOVE_AVERAGE,
 }
 
-data class PriceHistory(val points: List<PricePoint>) {
+data class PriceHistory(
+    val points: List<PricePoint>,
+) {
     val lowest: Double? get() = points.minOfOrNull { it.price }
     val highest: Double? get() = points.maxOfOrNull { it.price }
     val average: Double? get() = points.takeIf { it.isNotEmpty() }?.map { it.price }?.average()

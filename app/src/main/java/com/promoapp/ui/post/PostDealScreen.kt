@@ -67,23 +67,25 @@ fun PostDealScreen(
         },
     ) { padding ->
         Column(
-            modifier = Modifier
-                .padding(padding)
-                .navigationBarsPadding()
-                .imePadding()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+            modifier =
+                Modifier
+                    .padding(padding)
+                    .navigationBarsPadding()
+                    .imePadding()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             FormField(
                 value = state.title,
                 onValueChange = viewModel::onTitleChange,
                 labelRes = R.string.post_field_title,
-                errorRes = when {
-                    DraftError.TITLE_TOO_SHORT in errors -> R.string.err_title_short
-                    DraftError.TITLE_TOO_LONG in errors -> R.string.err_title_long
-                    else -> null
-                },
+                errorRes =
+                    when {
+                        DraftError.TITLE_TOO_SHORT in errors -> R.string.err_title_short
+                        DraftError.TITLE_TOO_LONG in errors -> R.string.err_title_long
+                        else -> null
+                    },
                 capitalization = KeyboardCapitalization.Sentences,
             )
             FormField(
@@ -214,11 +216,12 @@ private fun FormField(
         singleLine = true,
         label = { Text(stringResource(labelRes)) },
         isError = errorRes != null,
-        supportingText = if (errorRes != null) {
-            { Text(stringResource(errorRes)) }
-        } else {
-            null
-        },
+        supportingText =
+            if (errorRes != null) {
+                { Text(stringResource(errorRes)) }
+            } else {
+                null
+            },
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType, capitalization = capitalization),
     )
 }

@@ -14,34 +14,37 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AlertsViewModel @Inject constructor(
-    private val repository: AlertRepository,
-) : ViewModel() {
+class AlertsViewModel
+    @Inject
+    constructor(
+        private val repository: AlertRepository,
+    ) : ViewModel() {
+        /** `null` enquanto o banco ainda não respondeu. */
+        val alerts: StateFlow<List<PriceAlert>?> =
+            repository
+                .observeAlerts()
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), null)
 
-    /** `null` enquanto o banco ainda não respondeu. */
-    val alerts: StateFlow<List<PriceAlert>?> = repository.observeAlerts()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), null)
+        private val _isChecking = MutableStateFlow(false)
+        val isChecking: StateFlow<Boolean> = _isChecking.asStateFlow()
 
-    private val _isChecking = MutableStateFlow(false)
-    val isChecking: StateFlow<Boolean> = _isChecking.asStateFlow()
+        fun onDelete(dealId: Long) {
+            viewModelScope.launch { repository.deleteAlert(dealId) }
+        }
 
-    fun onDelete(dealId: Long) {
-        viewModelScope.launch { repository.deleteAlert(dealId) }
-    }
-
-    fun onCheckNow() {
-        if (_isChecking.value) return
-        viewModelScope.launch {
-            _isChecking.value = true
-            try {
-                repository.checkAlerts()
-            } finally {
-                _isChecking.value = false
+        fun onCheckNow() {
+            if (_isChecking.value) return
+            viewModelScope.launch {
+                _isChecking.value = true
+                try {
+                    repository.checkAlerts()
+                } finally {
+                    _isChecking.value = false
+                }
             }
         }
-    }
 
-    private companion object {
-        const val STOP_TIMEOUT_MS = 5_000L
+        private companion object {
+            const val STOP_TIMEOUT_MS = 5_000L
+        }
     }
-}

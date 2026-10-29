@@ -13,11 +13,14 @@ import java.util.Locale
 private val shortDateFormatter: DateTimeFormatter =
     DateTimeFormatter.ofPattern("dd/MM", Locale.forLanguageTag("pt-BR"))
 
-fun formatShortDate(millis: Long): String =
-    shortDateFormatter.format(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()))
+fun formatShortDate(millis: Long): String = shortDateFormatter.format(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()))
 
 @Composable
-fun expiryText(coupon: Coupon, status: CouponStatus, nowMillis: Long): String {
+fun expiryText(
+    coupon: Coupon,
+    status: CouponStatus,
+    nowMillis: Long,
+): String {
     val expiresAt = coupon.expiresAtMillis ?: return stringResource(R.string.coupon_no_expiry)
     return when (status) {
         CouponStatus.EXPIRED -> stringResource(R.string.coupon_expired)
