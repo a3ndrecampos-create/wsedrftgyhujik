@@ -102,8 +102,8 @@ class ClicksAndAdminTest {
 
         assertEquals(HttpStatusCode.OK, page.status)
         assertTrue(page.bodyAsText().contains("PromoApp"))
-        assertNotNull(page.headers[HttpHeaders.ContentSecurityPolicy])
-        assertEquals("DENY", page.headers[HttpHeaders.XFrameOptions])
+        assertNotNull(page.headers["Content-Security-Policy"])
+        assertEquals("DENY", page.headers["X-Frame-Options"])
         assertEquals(HttpStatusCode.Unauthorized, client.get("/admin/status").status)
     }
 

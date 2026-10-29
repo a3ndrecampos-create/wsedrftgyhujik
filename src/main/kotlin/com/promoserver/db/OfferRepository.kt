@@ -69,7 +69,7 @@ class OfferRepository {
                 .firstOrNull()
             if (existing == null) {
                 val id = OffersTable.insertAndGetId {
-                    it[source] = "collector"
+                    it[origin] = "collector"
                     it[store] = offer.store
                     it[externalId] = offer.externalId
                     it[title] = offer.title
@@ -110,7 +110,7 @@ class OfferRepository {
     fun deactivateUnseen(store: String, runStartedAt: Long): Int = transaction {
         OffersTable.update({
             (OffersTable.store eq store) and
-                (OffersTable.source eq "collector") and
+                (OffersTable.origin eq "collector") and
                 (OffersTable.active eq true) and
                 (OffersTable.lastSeenAt less runStartedAt)
         }) { it[active] = false }
@@ -129,7 +129,7 @@ class OfferRepository {
             couponCode = request.coupon,
         ).tags()
         val id = OffersTable.insertAndGetId {
-            it[source] = "user"
+            it[origin] = "user"
             it[store] = request.store.trim()
             it[externalId] = UUID.randomUUID().toString()
             it[title] = request.title.trim()
@@ -180,7 +180,7 @@ class OfferRepository {
     /** Apaga ofertas de coletor que expiraram antes de [cutoff], com histórico de preço e cliques. */
     fun deleteInactiveOlderThan(cutoff: Long): Int = transaction {
         val ids = OffersTable.selectAll()
-            .where { (OffersTable.active eq false) and (OffersTable.source eq "collector") and (OffersTable.lastSeenAt less cutoff) }
+            .where { (OffersTable.active eq false) and (OffersTable.origin eq "collector") and (OffersTable.lastSeenAt less cutoff) }
             .map { it[OffersTable.id].value }
         ids.chunked(DELETE_CHUNK).forEach { chunk ->
             val list = chunk.joinToString(",") // ids numéricos do nosso próprio banco
@@ -196,7 +196,7 @@ class OfferRepository {
     }
 
     fun myPosts(): List<OfferRow> = transaction {
-        OffersTable.selectAll().where { OffersTable.source eq "user" }.map(::toRow).sortedByDescending { it.postedAt }
+        OffersTable.selectAll().where { OffersTable.origin eq "user" }.map(::toRow).sortedByDescending { it.postedAt }
     }
 
     fun list(tab: String, page: Int, pageSize: Int, now: Long): List<OfferRow> {
@@ -271,7 +271,7 @@ class OfferRepository {
 
     private fun toRow(row: ResultRow) = OfferRow(
         id = row[OffersTable.id].value,
-        source = row[OffersTable.source],
+        source = row[OffersTable.origin],
         store = row[OffersTable.store],
         title = row[OffersTable.title],
         imageUrl = row[OffersTable.imageUrl],

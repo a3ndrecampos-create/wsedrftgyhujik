@@ -75,8 +75,8 @@ fun Route.apiRoutes(deps: AppDependencies) {
 
     // Painel de administração (a página é estática; os dados exigem o token).
     get("/admin") {
-        call.response.header(HttpHeaders.ContentSecurityPolicy, "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'")
-        call.response.header(HttpHeaders.XFrameOptions, "DENY")
+        call.response.header("Content-Security-Policy", "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'")
+        call.response.header("X-Frame-Options", "DENY")
         call.respondText(AdminPage.html, ContentType.Text.Html)
     }
 

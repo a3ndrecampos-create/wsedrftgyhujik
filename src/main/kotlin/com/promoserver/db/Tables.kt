@@ -3,7 +3,7 @@ package com.promoserver.db
 import org.jetbrains.exposed.dao.id.LongIdTable
 
 object OffersTable : LongIdTable("offers") {
-    val source = varchar("source", 16) // "collector" ou "user"
+    val origin = varchar("source", 16) // "collector" ou "user"
     val store = varchar("store", 64)
     val externalId = varchar("external_id", 128)
     val title = varchar("title", 200)
