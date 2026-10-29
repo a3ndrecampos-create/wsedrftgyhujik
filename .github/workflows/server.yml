@@ -1,0 +1,33 @@
+name: Servidor
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+      - run: gradle test --stacktrace
+      - name: Gera o pacote da ShardCloud
+        if: github.ref == 'refs/heads/main'
+        run: gradle shardcloudZip
+      - uses: actions/upload-artifact@v4
+        if: github.ref == 'refs/heads/main'
+        with:
+          name: promo-server-shardcloud
+          path: build/distributions/promo-server-shardcloud.zip
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: relatorio-de-testes
+          path: build/reports/tests/test

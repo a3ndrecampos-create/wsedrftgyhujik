@@ -1,0 +1,8 @@
+.gradle/
+build/
+*.db
+*.db-journal
+.env
+promo.env
+sites.json
+.idea/
