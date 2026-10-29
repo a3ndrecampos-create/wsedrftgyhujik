@@ -1,3 +1,5 @@
 <resources>
-    <style name="Theme.PromoApp" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.Volta" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#00796B</item>
+    </style>
 </resources>

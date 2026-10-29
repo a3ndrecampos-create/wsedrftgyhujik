@@ -1,0 +1,5 @@
+DISPLAY_NAME=voltapracasa-api
+DESCRIPTION=API do app Volta Pra Casa - rede de pets perdidos
+MAIN=index.js
+MEMORY=512
+VERSION=LATEST
