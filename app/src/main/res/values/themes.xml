@@ -1,6 +1,6 @@
 <resources>
     <style name="Theme.Volta" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">#1B2250</item>
-        <item name="android:windowBackground">#F5F6FA</item>
+        <item name="android:windowBackground">#1B2250</item>
     </style>
 </resources>

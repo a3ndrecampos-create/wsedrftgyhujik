@@ -14,7 +14,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -41,8 +44,12 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             VoltaTheme {
+                val vm: AppVM = viewModel()
+                var showSplash by rememberSaveable { mutableStateOf(true) }
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    AppRoot(viewModel())
+                    Crossfade(targetState = showSplash, animationSpec = tween(400), label = "splash") { splash ->
+                        if (splash) SplashScreen { showSplash = false } else AppRoot(vm)
+                    }
                 }
             }
         }
