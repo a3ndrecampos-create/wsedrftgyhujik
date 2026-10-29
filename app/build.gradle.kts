@@ -18,7 +18,7 @@ android {
         // URL do servidor na Shard Cloud. No GitHub: Settings > Secrets and variables > Actions > Variables > API_URL
         val api = System.getenv("API_URL")?.takeIf { it.isNotBlank() }
             ?: (project.findProperty("API_URL") as String?)?.takeIf { it.isNotBlank() }
-            ?: "https://SEU-APP.shardcloud.app"
+            ?: "https://voltapracasa.shardcloud.app"
         buildConfigField("String", "API_URL", "\"$api\"")
     }
 

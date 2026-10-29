@@ -15,8 +15,9 @@ cruzamento automático por localização/espécie/cor/porte, área de adoção s
 5. Os dados ficam em `data/` (db.json + fotos). Confirme na Shard Cloud se o disco persiste entre deploys e faça backup antes de reenviar o zip.
 
 ## 2) APK no GitHub
+**Antes de tudo:** abra `gradle.properties` e troque `API_URL=` pela URL do servidor (com https://, sem barra no final). Sem isso o app não conecta.
 1. Suba este projeto num repositório.
-2. Settings → Secrets and variables → Actions → **Variables** → crie `API_URL` = URL do servidor (ex.: https://meuapp.shardcloud.app).
+2. Settings → Secrets and variables → Actions → **Variables** → crie `API_URL` = URL do servidor (ex.: https://voltapracasa.shardcloud.app).
 3. Aba Actions → Build APK → Run workflow. O APK sai em Artifacts (`VoltaPraCasa-debug-apk`).
 
 ## 3) Aprovar ONGs

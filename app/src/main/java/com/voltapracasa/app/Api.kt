@@ -77,6 +77,6 @@ object Net {
 
 fun Throwable.friendly(): String = when (this) {
     is HttpException -> Net.parseError(this)
-    is IOException -> "Sem conexão com o servidor. Verifique sua internet."
+    is IOException -> "Sem conexão com ${BuildConfig.API_URL}. Verifique a internet e a URL do servidor."
     else -> message ?: "Algo deu errado."
 }
