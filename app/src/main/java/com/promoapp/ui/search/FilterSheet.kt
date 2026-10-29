@@ -98,8 +98,18 @@ fun FilterSheet(
 
             SectionTitle(R.string.filter_price)
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                PriceField(value = minPrice, onValueChange = { minPrice = it }, labelRes = R.string.filter_min, modifier = Modifier.weight(1f))
-                PriceField(value = maxPrice, onValueChange = { maxPrice = it }, labelRes = R.string.filter_max, modifier = Modifier.weight(1f))
+                PriceField(
+                    value = minPrice,
+                    onValueChange = { minPrice = it },
+                    labelRes = R.string.filter_min,
+                    modifier = Modifier.weight(1f),
+                )
+                PriceField(
+                    value = maxPrice,
+                    onValueChange = { maxPrice = it },
+                    labelRes = R.string.filter_max,
+                    modifier = Modifier.weight(1f),
+                )
             }
 
             Row(

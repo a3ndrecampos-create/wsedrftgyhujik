@@ -48,7 +48,11 @@ class FakeDealApi : DealApi {
         val now = System.currentTimeMillis()
         val storeSet = stores?.split(",")?.toSet().orEmpty()
         val filtered = ((1L..CATALOG_SIZE).map { buildDeal(it, now) } + posted).filter { deal ->
-            (query.isNullOrBlank() || deal.title.contains(query, ignoreCase = true) || deal.storeName.contains(query, ignoreCase = true)) &&
+            (
+                query.isNullOrBlank() ||
+                    deal.title.contains(query, ignoreCase = true) ||
+                    deal.storeName.contains(query, ignoreCase = true)
+            ) &&
                 (storeSet.isEmpty() || deal.storeName in storeSet) &&
                 (category == null || categoryOf(deal.id) == category) &&
                 (minPrice == null || deal.price >= minPrice) &&
