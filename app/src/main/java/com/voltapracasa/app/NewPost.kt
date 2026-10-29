@@ -23,7 +23,7 @@ import coil.compose.AsyncImage
 import java.io.File
 
 @Composable
-fun Field(label: String, value: String, onChange: (String) -> Unit, lines: Int = 1, kb: KeyboardType = KeyboardType.Text) {
+fun Field(label: String, value: String, lines: Int = 1, kb: KeyboardType = KeyboardType.Text, onChange: (String) -> Unit) {
     OutlinedTextField(
         value = value, onValueChange = onChange, label = { Text(label) },
         modifier = Modifier.fillMaxWidth(), minLines = lines, maxLines = if (lines > 1) 6 else 1,

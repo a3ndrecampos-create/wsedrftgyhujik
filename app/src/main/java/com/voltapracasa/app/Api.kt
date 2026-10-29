@@ -44,7 +44,7 @@ interface PetApi {
 object Net {
     @Volatile var token: String? = null
     private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
-    private val base get() = BuildConfig.API_URL.trimEnd(/)
+    private val base: String get() = BuildConfig.API_URL.trimEnd('/')
 
     val api: PetApi by lazy {
         val client = OkHttpClient.Builder()
