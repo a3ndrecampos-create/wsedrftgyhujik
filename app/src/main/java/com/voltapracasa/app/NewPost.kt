@@ -5,30 +5,43 @@ package com.voltapracasa.app
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import java.io.File
+import java.util.Locale
 
 @Composable
 fun Field(label: String, value: String, lines: Int = 1, kb: KeyboardType = KeyboardType.Text, onChange: (String) -> Unit) {
     OutlinedTextField(
         value = value, onValueChange = onChange, label = { Text(label) },
         modifier = Modifier.fillMaxWidth(), minLines = lines, maxLines = if (lines > 1) 6 else 1,
+        shape = RoundedCornerShape(14.dp),
         keyboardOptions = KeyboardOptions(keyboardType = kb)
     )
+}
+
+@Composable
+private fun GroupLabel(text: String) {
+    Text(text, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable
@@ -65,54 +78,100 @@ fun NewPostScreen(vm: AppVM, initialType: String, onBack: () -> Unit, onDone: (S
     }
 
     val types = buildList {
-        add("🔍 Perdi" to "LOST"); add("📸 Avistei" to "SIGHTING"); add("🤝 Estou com ele" to "FOUND")
-        if (vm.user?.role == "ONG" && vm.user?.ongStatus == "APPROVED") add("🏠 Adoção" to "ADOPTION")
+        add("Perdi" to "LOST"); add("Avistei" to "SIGHTING"); add("Estou com ele" to "FOUND")
+        if (vm.user?.role == "ONG" && vm.user?.ongStatus == "APPROVED") add("Adoção" to "ADOPTION")
     }
 
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        TextButton(onClick = onBack) { Text("← Cancelar") }
-        Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Novo anúncio", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            FilterRow(types, type) { type = it }
+    Column(Modifier.fillMaxSize().imePadding()) {
+        ScreenBar("Novo anúncio", onBack)
+        Column(
+            Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            FilterRow(types, type, horizontalPadding = 0.dp) { type = it }
 
-            Text(
-                when (type) {
-                    "LOST" -> "Conte como seu pet é. Quanto mais detalhes, mais fácil de cruzar com avistamentos."
-                    "SIGHTING" -> "Tire uma foto agora: o ping aparece no mapa na hora, no local onde você está."
-                    "FOUND" -> "Você está cuidando de um pet achado? Avise para o dono encontrar."
-                    else -> "Adoção responsável. É proibido cobrar ou vender animais."
-                },
-                style = MaterialTheme.typography.bodySmall
-            )
-
-            if (photoUri != null) {
-                AsyncImage(model = photoUri, contentDescription = "Foto do pet", contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(220.dp))
+            Surface(shape = RoundedCornerShape(14.dp), color = MaterialTheme.colorScheme.surface) {
+                Row(Modifier.height(IntrinsicSize.Min)) {
+                    Box(Modifier.width(5.dp).fillMaxHeight().background(Labels.typeColor(type)))
+                    Text(
+                        when (type) {
+                            "LOST" -> "Conte como seu pet é. Quanto mais detalhes, mais fácil de cruzar com avistamentos."
+                            "SIGHTING" -> "Tire uma foto agora: o ponto aparece no mapa na hora, no local onde você está."
+                            "FOUND" -> "Está cuidando de um pet que achou? Avise para o dono encontrar."
+                            else -> "Adoção responsável. É proibido cobrar ou vender animais."
+                        },
+                        Modifier.padding(14.dp), style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { takePhoto() }) { Text("📷 Tirar foto") }
-                OutlinedButton(onClick = { gallery.launch("image/*") }) { Text("🖼️ Galeria") }
+
+            Box(
+                Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(18.dp)).background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                if (photoUri != null) {
+                    AsyncImage(model = photoUri, contentDescription = "Foto do pet", contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                } else {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        PawMark(44.dp, MaterialTheme.colorScheme.outline)
+                        Spacer(Modifier.height(8.dp))
+                        Text("A foto ajuda a reconhecer o pet", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                PrimaryButton("Tirar foto", onClick = { takePhoto() }, modifier = Modifier.weight(1f))
+                SecondaryButton("Galeria", onClick = { gallery.launch("image/*") }, modifier = Modifier.weight(1f))
             }
 
-            Text("Espécie", fontWeight = FontWeight.Bold)
-            FilterRow(Labels.speciesList.map { Labels.species(it) to it }, species) { species = it }
+            SectionTitle("Sobre o pet")
+            GroupLabel("Espécie")
+            FilterRow(Labels.speciesList.map { Labels.species(it) to it }, species, horizontalPadding = 0.dp) { species = it }
             if (type != "SIGHTING") Field(if (type == "LOST") "Nome do pet" else "Nome (se souber)", name) { name = it }
-            Field("Cor / pelagem (ex.: caramelo, preto e branco)", color) { color = it }
-            Text("Porte", fontWeight = FontWeight.Bold)
-            FilterRow(listOf("Não sei" to "", "Pequeno" to "SMALL", "Médio" to "MEDIUM", "Grande" to "LARGE"), size) { size = it }
-            Text("Sexo", fontWeight = FontWeight.Bold)
-            FilterRow(listOf("Não sei" to "", "Macho" to "M", "Fêmea" to "F"), sex) { sex = it }
+            Field("Cor ou pelagem (ex.: caramelo, preto e branco)", color) { color = it }
+            GroupLabel("Porte")
+            FilterRow(listOf("Não sei" to "", "Pequeno" to "SMALL", "Médio" to "MEDIUM", "Grande" to "LARGE"), size, horizontalPadding = 0.dp) { size = it }
+            GroupLabel("Sexo")
+            FilterRow(listOf("Não sei" to "", "Macho" to "M", "Fêmea" to "F"), sex, horizontalPadding = 0.dp) { sex = it }
             Field("Detalhes (coleira, manchas, comportamento...)", desc, lines = 3) { desc = it }
+
+            SectionTitle("Contato e local")
             Field("Seu WhatsApp com DDD (visível só para usuários logados)", phone, kb = KeyboardType.Phone) { phone = it }
             Field("Referência do local (rua, bairro)", address) { address = it }
 
             val c = coords
-            Text(if (c == null) "📍 Obtendo sua localização..." else "📍 Local definido (%.5f, %.5f)".format(c.first, c.second), style = MaterialTheme.typography.bodySmall)
-            OutlinedButton(onClick = { picking = true }, enabled = c != null || vm.loc != null) { Text("Escolher outro local no mapa") }
-            Text("🚫 É proibido anunciar venda de animais.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+            SurfaceCard(Modifier.fillMaxWidth()) {
+                Row(Modifier.padding(start = 14.dp, top = 8.dp, bottom = 8.dp, end = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (c == null) CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
+                    else Icon(Icons.Filled.Place, contentDescription = null, tint = Brand.Lost)
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(if (c == null) "Obtendo sua localização…" else "Local definido", style = MaterialTheme.typography.titleMedium)
+                        if (c != null) {
+                            Text(
+                                String.format(Locale.US, "%.5f, %.5f", c.first, c.second),
+                                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    TextButton(onClick = { picking = true }, enabled = c != null || vm.loc != null) { Text("Alterar no mapa") }
+                }
+            }
 
-            Button(
+            Surface(shape = RoundedCornerShape(12.dp), color = Brand.Lost.copy(alpha = 0.12f)) {
+                Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        "É proibido anunciar venda de animais. Anúncios denunciados são removidos.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            PrimaryButton(
+                if (vm.busy) "Publicando…" else "Publicar anúncio",
                 enabled = !vm.busy,
-                modifier = Modifier.fillMaxWidth(),
                 onClick = {
                     val uri = photoUri
                     val loc = coords
@@ -131,8 +190,8 @@ fun NewPostScreen(vm: AppVM, initialType: String, onBack: () -> Unit, onDone: (S
                         ) { p -> if (p != null) onDone(p.id) }
                     }
                 }
-            ) { Text(if (vm.busy) "Publicando..." else "Publicar") }
-            Spacer(Modifier.height(32.dp))
+            )
+            Spacer(Modifier.height(24.dp))
         }
     }
 

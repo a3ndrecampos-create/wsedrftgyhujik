@@ -25,11 +25,20 @@ object Labels {
     }
 
     fun typeColor(t: String) = when (t) {
-        "LOST" -> Color(0xFFE53935)
-        "FOUND" -> Color(0xFF1E88E5)
-        "SIGHTING" -> Color(0xFFFB8C00)
-        "ADOPTION" -> Color(0xFF43A047)
+        "LOST" -> Brand.Lost
+        "FOUND" -> Brand.Found
+        "SIGHTING" -> Brand.Sighting
+        "ADOPTION" -> Brand.Adoption
         else -> Color.Gray
+    }
+
+    /** Versão do tom com contraste para texto sobre fundo claro (no escuro usa o tom base). */
+    fun typeInk(t: String, dark: Boolean): Color = if (dark) typeColor(t) else when (t) {
+        "LOST" -> Color(0xFFB42328)
+        "FOUND" -> Color(0xFF12698A)
+        "SIGHTING" -> Color(0xFF5A3DB0)
+        "ADOPTION" -> Color(0xFF1C7048)
+        else -> Color.DarkGray
     }
 
     fun species(s: String) = when (s) {

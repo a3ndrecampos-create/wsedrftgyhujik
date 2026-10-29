@@ -79,9 +79,9 @@ fun AppRoot(vm: AppVM) {
             )
             Screen.Auth -> {
                 LaunchedEffect(vm.user) { if (vm.user != null) pop() }
-                androidx.compose.foundation.layout.Column {
-                    androidx.compose.material3.TextButton(onClick = { pop() }) { androidx.compose.material3.Text("← Voltar") }
-                    AuthForm(vm)
+                androidx.compose.foundation.layout.Column(Modifier.fillMaxSize()) {
+                    ScreenBar("Entrar", onBack = { pop() })
+                    Box(Modifier.weight(1f)) { AuthForm(vm) }
                 }
             }
             is Screen.Detail -> DetailScreen(vm, s.id, onBack = { pop() }, onOpen = { stack.add(Screen.Detail(it)) })

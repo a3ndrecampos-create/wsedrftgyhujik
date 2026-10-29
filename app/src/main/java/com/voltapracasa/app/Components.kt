@@ -2,27 +2,39 @@
 
 package com.voltapracasa.app
 
-import android.content.Context
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -32,75 +44,230 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 
-private val LightColors = lightColorScheme(
-    primary = Color(0xFF00796B),
-    secondary = Color(0xFFFF8F00),
-    tertiary = Color(0xFF5D4037)
-)
-private val DarkColors = darkColorScheme(
-    primary = Color(0xFF4DB6AC),
-    secondary = Color(0xFFFFB74D)
-)
+// ---------- marca ----------
 
+/** Pata desenhada em código (sem depender de pacote de ícones extra). */
 @Composable
-fun VoltaTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = if (isSystemInDarkTheme()) DarkColors else LightColors, content = content)
-}
-
-@Composable
-fun TypeBadge(type: String) {
-    Surface(color = Labels.typeColor(type), shape = RoundedCornerShape(50)) {
-        Text(
-            Labels.type(type).uppercase(), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
-        )
+fun PawMark(boxSize: Dp, color: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier.size(boxSize)) {
+        val w = this.size.width
+        val h = this.size.height
+        drawOval(color, topLeft = Offset(w * 0.25f, h * 0.50f), size = Size(w * 0.50f, h * 0.40f))
+        drawOval(color, topLeft = Offset(w * 0.04f, h * 0.38f), size = Size(w * 0.21f, h * 0.28f))
+        drawOval(color, topLeft = Offset(w * 0.23f, h * 0.08f), size = Size(w * 0.21f, h * 0.30f))
+        drawOval(color, topLeft = Offset(w * 0.56f, h * 0.08f), size = Size(w * 0.21f, h * 0.30f))
+        drawOval(color, topLeft = Offset(w * 0.75f, h * 0.38f), size = Size(w * 0.21f, h * 0.28f))
     }
 }
 
 @Composable
-fun PostCard(p: Post, onClick: () -> Unit) {
-    Card(Modifier.fillMaxWidth().clickable(onClick = onClick), shape = RoundedCornerShape(16.dp)) {
-        Row {
-            AsyncImage(
-                model = Net.photoUrl(p.photo), contentDescription = p.title(),
-                contentScale = ContentScale.Crop, modifier = Modifier.size(112.dp)
-            )
-            Column(Modifier.padding(12.dp).weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                TypeBadge(p.type)
-                Text(p.title(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(
-                    listOf(Labels.species(p.species), p.color).filter { it.isNotBlank() }.joinToString(" • "),
-                    style = MaterialTheme.typography.bodySmall
-                )
-                val dist = p.distanceKm?.let { " • a $it km" } ?: ""
-                Text("${timeAgo(p.createdAt)}$dist", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (p.isOng) Text("✔ ONG: ${p.ownerName}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, maxLines = 1)
+fun BrandHeader(onRefresh: () -> Unit) {
+    Surface(color = Brand.Ink) {
+        Row(
+            Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            PawMark(28.dp, Brand.Porch)
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text("Volta Pra Casa", style = MaterialTheme.typography.titleLarge, color = Color.White)
+                Text("Pets perdidos e encontrados", style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.7f))
+            }
+            IconButton(onClick = onRefresh) {
+                Icon(Icons.Filled.Refresh, contentDescription = "Atualizar", tint = Color.White)
             }
         }
     }
 }
 
 @Composable
-fun <T> FilterRow(options: List<Pair<String, T>>, selected: T, onSelect: (T) -> Unit) {
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(options) { (label, value) ->
-            FilterChip(selected = selected == value, onClick = { onSelect(value) }, label = { Text(label) })
+fun ScreenBar(title: String, onBack: () -> Unit) {
+    Surface(color = Brand.Ink) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = Color.White)
+            }
+            Text(title, style = MaterialTheme.typography.titleLarge, color = Color.White)
         }
     }
 }
 
+// ---------- blocos básicos ----------
+
+@Composable
+fun SurfaceCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        content = content
+    )
+}
+
+@Composable
+fun SectionTitle(text: String, modifier: Modifier = Modifier) {
+    Text(text, modifier, style = MaterialTheme.typography.titleLarge)
+}
+
+@Composable
+fun InfoTag(text: String) {
+    Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+        Text(text, Modifier.padding(horizontal = 10.dp, vertical = 5.dp), style = MaterialTheme.typography.labelLarge)
+    }
+}
+
+@Composable
+fun IconText(
+    icon: ImageVector,
+    text: String,
+    modifier: Modifier = Modifier,
+    tint: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    textColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    style: TextStyle = MaterialTheme.typography.bodySmall
+) {
+    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(5.dp))
+        Text(text, style = style, color = textColor)
+    }
+}
+
+@Composable
+fun EmptyState(title: String, body: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 40.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        PawMark(48.dp, MaterialTheme.colorScheme.outline)
+        Spacer(Modifier.height(16.dp))
+        Text(title, style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
+        Spacer(Modifier.height(6.dp))
+        Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+    }
+}
+
+private val ButtonShape = RoundedCornerShape(14.dp)
+
+@Composable
+fun PrimaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    enabled: Boolean = true
+) {
+    Button(onClick = onClick, modifier = modifier.fillMaxWidth().heightIn(min = 52.dp), enabled = enabled, shape = ButtonShape) {
+        if (icon != null) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+        }
+        Text(text)
+    }
+}
+
+@Composable
+fun SecondaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    enabled: Boolean = true
+) {
+    OutlinedButton(onClick = onClick, modifier = modifier.fillMaxWidth().heightIn(min = 52.dp), enabled = enabled, shape = ButtonShape) {
+        if (icon != null) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+        }
+        Text(text)
+    }
+}
+
+// ---------- anúncios ----------
+
+@Composable
+fun TypeBadge(type: String, modifier: Modifier = Modifier, onPhoto: Boolean = false) {
+    val dark = isSystemInDarkTheme()
+    val base = Labels.typeColor(type)
+    val bg = if (onPhoto) base else base.copy(alpha = if (dark) 0.22f else 0.14f)
+    val fg = if (onPhoto) Color.White else Labels.typeInk(type, dark)
+    Surface(modifier, color = bg, shape = RoundedCornerShape(8.dp)) {
+        Text(
+            Labels.type(type), color = fg, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+        )
+    }
+}
+
+@Composable
+fun PostCard(p: Post, onClick: () -> Unit) {
+    SurfaceCard(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+        Box {
+            AsyncImage(
+                model = Net.photoUrl(p.photo), contentDescription = p.title(),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxWidth().height(184.dp).background(MaterialTheme.colorScheme.surfaceVariant)
+            )
+            TypeBadge(p.type, onPhoto = true, modifier = Modifier.align(Alignment.TopStart).padding(12.dp))
+            if (p.status != "ACTIVE") {
+                Surface(Modifier.align(Alignment.TopEnd).padding(12.dp), color = Color.White, shape = RoundedCornerShape(8.dp)) {
+                    Text(
+                        "Resolvido", color = Brand.Adoption, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
+                }
+            }
+        }
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(p.title(), style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            val meta = listOf(Labels.species(p.species), p.color, Labels.size(p.size)).filter { it.isNotBlank() }.joinToString(", ")
+            Text(meta, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                p.distanceKm?.let { IconText(Icons.Filled.Place, "a $it km") }
+                Text(timeAgo(p.createdAt), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (p.isOng) {
+                IconText(
+                    Icons.Filled.CheckCircle, "ONG verificada: ${p.ownerName}",
+                    tint = Brand.Adoption, textColor = Brand.Adoption, style = MaterialTheme.typography.labelMedium
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun <T> FilterRow(options: List<Pair<String, T>>, selected: T, horizontalPadding: Dp = 16.dp, onSelect: (T) -> Unit) {
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = horizontalPadding, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(options) { (label, value) ->
+            FilterChip(
+                selected = selected == value,
+                onClick = { onSelect(value) },
+                label = { Text(label) },
+                shape = RoundedCornerShape(12.dp),
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                )
+            )
+        }
+    }
+}
+
+// ---------- mapa ----------
+
 fun dot(color: Int, size: Int): Drawable = GradientDrawable().apply {
     shape = GradientDrawable.OVAL
     setColor(color)
-    setStroke(5, android.graphics.Color.WHITE)
+    setStroke(6, android.graphics.Color.WHITE)
     setSize(size, size)
 }
 
 @Composable
-fun MapScreen(posts: List<Post>, loc: Pair<Double, Double>?, onOpen: (String) -> Unit) {
+fun MapScreen(posts: List<Post>, loc: Pair<Double, Double>?, onOpen: (String) -> Unit, topInset: Dp = 0.dp) {
     val ctx = LocalContext.current
     val centered = remember { mutableStateOf(false) }
     val mv = remember {
@@ -126,7 +293,7 @@ fun MapScreen(posts: List<Post>, loc: Pair<Double, Double>?, onOpen: (String) ->
                 view.overlays.add(Marker(view).apply {
                     position = GeoPoint(la, ln)
                     title = "Você está aqui"
-                    icon = dot(0xFF607D8B.toInt(), 36)
+                    icon = dot(0xFF2C3A94.toInt(), 38)
                     setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                 })
             }
@@ -134,7 +301,7 @@ fun MapScreen(posts: List<Post>, loc: Pair<Double, Double>?, onOpen: (String) ->
                 view.overlays.add(Marker(view).apply {
                     position = GeoPoint(p.lat, p.lng)
                     title = "${Labels.type(p.type)}: ${p.title()}"
-                    icon = dot(Labels.typeColor(p.type).toArgb(), 56)
+                    icon = dot(Labels.typeColor(p.type).toArgb(), 60)
                     setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                     setOnMarkerClickListener { _, _ -> onOpen(p.id); true }
                 })
@@ -143,8 +310,19 @@ fun MapScreen(posts: List<Post>, loc: Pair<Double, Double>?, onOpen: (String) ->
         })
         SmallFloatingActionButton(
             onClick = { loc?.let { mv.controller.animateTo(GeoPoint(it.first, it.second)) } },
-            modifier = Modifier.align(Alignment.TopEnd).padding(12.dp)
-        ) { Text("📍") }
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.align(Alignment.TopEnd).padding(top = topInset + 12.dp, end = 12.dp)
+        ) { Icon(Icons.Filled.LocationOn, contentDescription = "Centralizar na minha localização") }
+        Surface(
+            modifier = Modifier.align(Alignment.BottomStart).padding(12.dp),
+            shape = RoundedCornerShape(50), shadowElevation = 4.dp, color = MaterialTheme.colorScheme.surface
+        ) {
+            Text(
+                if (posts.size == 1) "1 anúncio no mapa" else "${posts.size} anúncios no mapa",
+                Modifier.padding(horizontal = 14.dp, vertical = 8.dp), style = MaterialTheme.typography.labelLarge
+            )
+        }
     }
 }
 
@@ -163,16 +341,19 @@ fun MapPickerDialog(initial: Pair<Double, Double>, onPick: (Double, Double) -> U
                         mvRef = this
                     }
                 }, modifier = Modifier.fillMaxSize())
-                Text("📍", fontSize = 40.sp, modifier = Modifier.align(Alignment.Center).offset(y = (-20).dp))
+                Icon(
+                    Icons.Filled.LocationOn, contentDescription = null, tint = Brand.Lost,
+                    modifier = Modifier.align(Alignment.Center).offset(y = (-22).dp).size(48.dp)
+                )
                 Column(
                     Modifier.align(Alignment.BottomCenter).padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Surface(shape = RoundedCornerShape(12.dp), tonalElevation = 4.dp) {
-                        Text("Arraste o mapa até o local onde o pet foi visto", Modifier.padding(10.dp), fontSize = 13.sp)
+                    Surface(shape = RoundedCornerShape(12.dp), shadowElevation = 4.dp, color = MaterialTheme.colorScheme.surface) {
+                        Text("Arraste o mapa até o local onde o pet foi visto", Modifier.padding(12.dp), style = MaterialTheme.typography.bodyMedium)
                     }
-                    Spacer(Modifier.height(8.dp))
-                    Button(onClick = { mvRef?.mapCenter?.let { onPick(it.latitude, it.longitude) } }) { Text("Confirmar este local") }
+                    Spacer(Modifier.height(10.dp))
+                    PrimaryButton("Confirmar este local", onClick = { mvRef?.mapCenter?.let { onPick(it.latitude, it.longitude) } })
                     TextButton(onClick = onDismiss) { Text("Cancelar") }
                 }
             }
