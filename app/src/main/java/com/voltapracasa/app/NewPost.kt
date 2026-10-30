@@ -169,6 +169,8 @@ fun NewPostScreen(vm: AppVM, initialType: String, onBack: () -> Unit, onDone: (S
                 }
             }
 
+            SafetyBanner()
+
             PrimaryButton(
                 if (vm.busy) "Publicando…" else "Publicar anúncio",
                 enabled = !vm.busy,

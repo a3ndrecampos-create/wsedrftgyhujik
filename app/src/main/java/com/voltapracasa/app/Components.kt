@@ -9,6 +9,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,6 +20,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -358,5 +361,58 @@ fun MapPickerDialog(initial: Pair<Double, Double>, onPick: (Double, Double) -> U
                 }
             }
         }
+    }
+}
+
+// ---------- segurança contra golpes ----------
+
+private val SAFETY_TIPS = listOf(
+    "Nunca pague para receber informação" to "Taxa, frete, PIX, depósito ou \"recompensa antecipada\" para dizer onde o pet está ou devolvê-lo é golpe. Quem encontrou de verdade não cobra.",
+    "Não envie códigos nem dados" to "Nunca passe códigos recebidos por SMS ou WhatsApp, senhas, CPF ou dados de cartão. É assim que clonam contas.",
+    "Peça uma prova" to "Peça uma foto ou vídeo do pet no momento e confira detalhes que só o dono conhece, sem contar tudo antes.",
+    "Encontro em local seguro" to "Combine em local público e movimentado, de preferência de dia e acompanhado. Se houver recompensa, só entregue depois de ter o pet de volta em mãos.",
+    "Desconfie de pressa" to "Pressão, ameaças ou \"só hoje\" são sinais de golpe. Ninguém sério impede você de pensar.",
+    "Denuncie" to "Use o botão Denunciar no anúncio. Anúncios com várias denúncias saem do ar."
+)
+
+/** Aviso fixo: aparece sempre, e ao tocar abre as dicas completas. */
+@Composable
+fun SafetyBanner(compact: Boolean = false, modifier: Modifier = Modifier) {
+    var open by remember { mutableStateOf(false) }
+    val onC = MaterialTheme.colorScheme.onSecondaryContainer
+    Surface(
+        onClick = { open = true },
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(if (compact) 0.dp else 14.dp),
+        color = MaterialTheme.colorScheme.secondaryContainer
+    ) {
+        Row(
+            Modifier.padding(horizontal = 16.dp, vertical = if (compact) 8.dp else 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Filled.Warning, contentDescription = null, tint = onC, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(12.dp))
+            Column {
+                Text("Nunca pague por informações sobre um pet perdido.", style = MaterialTheme.typography.labelLarge, color = onC)
+                Text("Quem cobra é golpista. Toque para ver dicas de segurança.", style = MaterialTheme.typography.bodySmall, color = onC)
+            }
+        }
+    }
+    if (open) {
+        AlertDialog(
+            onDismissRequest = { open = false },
+            confirmButton = { TextButton(onClick = { open = false }) { Text("Entendi") } },
+            title = { Text("Como evitar golpes", style = MaterialTheme.typography.titleLarge) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    SAFETY_TIPS.forEach { (t, b) ->
+                        Column {
+                            Text(t, style = MaterialTheme.typography.titleMedium)
+                            Text(b, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
+        )
     }
 }

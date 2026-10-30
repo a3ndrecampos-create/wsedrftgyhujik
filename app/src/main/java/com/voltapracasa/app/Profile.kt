@@ -187,7 +187,7 @@ fun AuthForm(vm: AppVM, compact: Boolean = false) {
             Row(Modifier.fillMaxWidth().clickable { terms = !terms }, verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(checked = terms, onCheckedChange = { terms = it })
                 Text(
-                    "Concordo que é proibido vender animais e que denúncias podem remover meus anúncios.",
+                    "Concordo que é proibido vender animais ou cobrar por informações de um pet, e que denúncias podem remover meus anúncios.",
                     style = MaterialTheme.typography.bodySmall
                 )
             }

@@ -80,7 +80,7 @@ fun DetailScreen(vm: AppVM, id: String, onBack: () -> Unit, onOpen: (String) -> 
     fun share() {
         val send = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, "🐾 ${Labels.type(p.type).uppercase()}: ${p.title()} ${p.address}\n${Net.shareUrl(p.id)}")
+            putExtra(Intent.EXTRA_TEXT, "🐾 ${Labels.type(p.type).uppercase()}: ${p.title()} ${p.address}\n${Net.shareUrl(p.id)}\nNunca pague por informações sobre pet perdido.")
         }
         safeStart(Intent.createChooser(send, "Compartilhar"))
     }
@@ -150,6 +150,8 @@ fun DetailScreen(vm: AppVM, id: String, onBack: () -> Unit, onOpen: (String) -> 
                             }
                         }
                     }
+
+                    SafetyBanner()
 
                     val hasPhone = p.contactPhone.isNotBlank()
                     if (hasPhone) {
@@ -253,7 +255,7 @@ fun DetailScreen(vm: AppVM, id: String, onBack: () -> Unit, onOpen: (String) -> 
             title = { Text("Qual o problema?") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("Venda de animal", "Golpe ou spam", "Informação falsa", "Conteúdo impróprio").forEach { r ->
+                    listOf("Cobrança ou pedido de dinheiro", "Venda de animal", "Golpe ou spam", "Informação falsa", "Conteúdo impróprio").forEach { r ->
                         SecondaryButton(r, onClick = { dialog = null; vm.report(p.id, r) })
                     }
                 }

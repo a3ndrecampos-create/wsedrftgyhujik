@@ -49,6 +49,8 @@ const esc = s => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 
 // Proibição de venda de animais (filtro de texto; denúncias da comunidade complementam)
 const SALE = /(\bvend(o|e|em|a|er|ida|ido|emos)\b|\bvenda\b|\bpre[cç]o\b|r\$|\breais\b|\bpix\b|\bcompr(o|a|ar)\b|\bparcel|\bcobr(o|amos|ar)\b|\bfilhotes? a venda\b)/i;
+// pedidos de dinheiro (taxa, frete, pagamento...) em anúncios: golpe comum contra quem perdeu o pet
+const SCAM = /(\bpagamentos?\b|\bpag(ar|ue)\b|\btaxas?\b|\bfrete\b|\btransfer[eê]ncias?\b|\bboleto\b)/i;
 
 function isImage(file) {
   try {
@@ -189,6 +191,10 @@ app.post('/api/posts', auth, (req, res, next) =>
     if (!isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return fail('Localização inválida.');
     if (SALE.test([b.name, b.description, b.color, b.address, b.contactPhone].join(' ')))
       return fail('Venda de animais é proibida no Volta Pra Casa. Remova valores ou ofertas de venda do texto.');
+    if (SCAM.test([b.name, b.description, b.color, b.address, b.contactPhone].join(' ')))
+      return fail('Anúncios não podem pedir dinheiro, taxa, frete ou pagamento. Nunca se cobra por informação sobre um pet perdido.');
+    if (db.posts.filter(x => x.userId === u.id && x.hidden).length >= 3)
+      return fail('Sua conta está em análise por denúncias de outros usuários. Fale com o suporte.', 403);
     if (db.posts.filter(p => p.userId === u.id && p.createdAt > Date.now() - 864e5).length >= 20)
       return fail('Limite diário de publicações atingido.', 429);
     const post = {
@@ -225,7 +231,7 @@ app.post('/api/posts/:id/report', auth, (req, res) => {
   const reason = clean((req.body || {}).reason, 40) || 'OUTRO';
   p.reports = (p.reports || []).filter(r => r.by !== req.user.id);
   p.reports.push({ by: req.user.id, reason, at: Date.now() });
-  const sale = p.reports.filter(r => /venda/i.test(r.reason)).length;
+  const sale = p.reports.filter(r => /venda|cobran|golpe|dinheiro/i.test(r.reason)).length;
   if (p.reports.length >= 3 || sale >= 2) p.hidden = true; // oculta até revisão
   save(); res.json({ ok: true });
 });
@@ -275,12 +281,14 @@ app.get('/p/:id', (req, res) => {
 <meta property="og:description" content="${esc(p.description)}"></head>
 <body style="font-family:sans-serif;max-width:520px;margin:auto;padding:16px"><h2>${esc(title)}</h2>
 <img src="${base}${p.photo}" style="width:100%;border-radius:12px"><p>${esc(p.description)}</p>
+<p style="background:#FFEFC7;padding:12px;border-radius:12px"><b>Nunca pague por informações sobre um pet perdido.</b> Quem cobra é golpista.</p>
 <p><b>Baixe o app Volta Pra Casa</b> para ver o contato e o mapa.</p></body></html>`);
 });
 app.get('/termos', (req, res) => res.send(`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <body style="font-family:sans-serif;max-width:600px;margin:auto;padding:16px"><h1>Termos - Volta Pra Casa</h1>
 <p>O Volta Pra Casa é uma rede gratuita para reunir pets perdidos e suas famílias.</p>
 <ul><li>É <b>proibida a venda</b> ou oferta paga de animais. Anúncios assim são removidos e a conta pode ser banida.</li>
+<li><b>Nunca pague</b> para receber informações sobre um pet perdido. Quem cobra é golpista: denuncie o anúncio.</li>
 <li>Adoção só pode ser divulgada por ONGs/protetores aprovados.</li>
 <li>Publique apenas informações verdadeiras. Seu telefone fica visível só para usuários logados.</li></ul></body>`));
 

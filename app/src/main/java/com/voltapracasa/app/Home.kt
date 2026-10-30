@@ -53,7 +53,12 @@ fun HomeScreen(vm: AppVM, onOpen: (String) -> Unit, onNew: (String) -> Unit, onN
     }
 
     Scaffold(
-        topBar = { BrandHeader(onRefresh = { vm.refresh() }) },
+        topBar = {
+            Column {
+                BrandHeader(onRefresh = { vm.refresh() })
+                SafetyBanner(compact = true)
+            }
+        },
         bottomBar = {
             NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
                 NAV_TABS.forEachIndexed { i, t ->
