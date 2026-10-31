@@ -28,6 +28,8 @@ class AppVM(app: Application) : AndroidViewModel(app) {
         private set
     var myMatches by mutableStateOf<List<MyMatch>>(emptyList())
         private set
+    var chats by mutableStateOf<List<ChatSummary>>(emptyList())
+        private set
     var loading by mutableStateOf(false)
         private set
     var busy by mutableStateOf(false)
@@ -103,6 +105,7 @@ class AppVM(app: Application) : AndroidViewModel(app) {
         user = null
         myPosts = emptyList()
         myMatches = emptyList()
+        chats = emptyList()
     }
 
     fun loadMine() {
@@ -127,13 +130,62 @@ class AppVM(app: Application) : AndroidViewModel(app) {
                 } else {
                     val part = MultipartBody.Part.createFormData("photo", "photo.jpg", file.asRequestBody("image/jpeg".toMediaType()))
                     val body = fields.mapValues { it.value.toRequestBody("text/plain".toMediaType()) }
-                    result = Net.api.create(part, body)
-                    message = "Publicado! Vamos ajudar esse pet a voltar pra casa 🐾"
+                    val created = Net.api.create(part, body)
+                    result = created
+                    message = if (created.review == "APPROVED") "Publicado! Vamos ajudar esse pet a voltar pra casa 🐾"
+                    else "Enviado para verificação da foto. Acompanhe em Meus anúncios."
                     refresh()
                 }
             } catch (e: Exception) { message = e.friendly() }
             busy = false
             done(result)
+        }
+    }
+
+    fun forgot(email: String, done: () -> Unit) {
+        viewModelScope.launch {
+            busy = true
+            try {
+                Net.api.forgot(ForgotBody(email.trim()))
+                message = "Se o e-mail estiver cadastrado, enviamos um código de 6 dígitos."
+                done()
+            } catch (e: Exception) { message = e.friendly() }
+            busy = false
+        }
+    }
+
+    fun reset(email: String, code: String, pw: String) {
+        viewModelScope.launch {
+            busy = true
+            try {
+                onAuth(Net.api.reset(ResetBody(email.trim(), code.trim(), pw)))
+                message = "Senha redefinida. Você já está conectado(a)."
+            } catch (e: Exception) { message = e.friendly() }
+            busy = false
+        }
+    }
+
+    fun loadChats() {
+        if (user == null) return
+        viewModelScope.launch {
+            try { chats = Net.api.chats() } catch (_: Exception) {}
+        }
+    }
+
+    fun openChat(postId: String, done: (String) -> Unit) {
+        viewModelScope.launch {
+            busy = true
+            try { done(Net.api.openChat(OpenChatBody(postId)).id) } catch (e: Exception) { message = e.friendly() }
+            busy = false
+        }
+    }
+
+    fun reportChat(id: String, reason: String) {
+        viewModelScope.launch {
+            try {
+                Net.api.reportChat(id, ReportBody(reason))
+                message = "Denúncia enviada. A conversa fica guardada para a moderação analisar."
+            } catch (e: Exception) { message = e.friendly() }
         }
     }
 

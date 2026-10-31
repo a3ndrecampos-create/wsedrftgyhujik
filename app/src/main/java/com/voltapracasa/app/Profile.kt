@@ -52,6 +52,28 @@ fun ProfileTab(vm: AppVM, onOpen: (String) -> Unit) {
             }
         }
 
+        val levelText = when {
+            u.level >= 3 -> "Nível 3: seus anúncios entram no ar na hora."
+            u.restricted -> "Nível 1: seus anúncios passam por verificação de foto enquanto houver denúncia pendente em algum anúncio seu."
+            else -> "Nível ${u.level} de 3: seus anúncios passam por verificação de foto antes de ir ao ar. " +
+                "Faltam ${u.nextLevelIn} ${if (u.nextLevelIn == 1) "anúncio aprovado" else "anúncios aprovados"} para o próximo nível."
+        }
+        SurfaceCard(Modifier.fillMaxWidth()) {
+            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    Modifier.size(44.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("${u.level}", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                }
+                Spacer(Modifier.width(14.dp))
+                Column {
+                    Text("Seu nível", style = MaterialTheme.typography.titleMedium)
+                    Text(levelText, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+
         if (u.role == "ONG") {
             val approved = u.ongStatus == "APPROVED"
             val rejected = u.ongStatus == "REJECTED"
@@ -135,10 +157,12 @@ private fun Segmented(options: List<String>, selected: Int, onSelect: (Int) -> U
 
 @Composable
 fun AuthForm(vm: AppVM, compact: Boolean = false) {
-    var register by rememberSaveable { mutableStateOf(false) }
+    // 0 = entrar, 1 = criar conta, 2 = esqueci a senha, 3 = digitar código e nova senha
+    var mode by rememberSaveable { mutableIntStateOf(0) }
     var name by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var pass by rememberSaveable { mutableStateOf("") }
+    var code by rememberSaveable { mutableStateOf("") }
     var showPass by rememberSaveable { mutableStateOf(false) }
     var isOng by rememberSaveable { mutableStateOf(false) }
     var ongName by rememberSaveable { mutableStateOf("") }
@@ -155,13 +179,18 @@ fun AuthForm(vm: AppVM, compact: Boolean = false) {
             Text("Volta Pra Casa", style = MaterialTheme.typography.headlineMedium)
         }
         Text(
-            if (register) "Crie sua conta gratuita para publicar anúncios." else "Entre para publicar anúncios e ver contatos.",
+            when (mode) {
+                1 -> "Crie sua conta gratuita para publicar anúncios."
+                2 -> "Informe o e-mail da sua conta. Enviaremos um código de 6 dígitos para você criar uma nova senha."
+                3 -> "Digite o código enviado para ${email.trim()} e escolha uma nova senha. O código vale por 15 minutos."
+                else -> "Entre para publicar anúncios e conversar com quem ajuda."
+            },
             style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Segmented(listOf("Entrar", "Criar conta"), if (register) 1 else 0) { register = it == 1 }
+        if (mode <= 1) Segmented(listOf("Entrar", "Criar conta"), mode) { mode = it }
 
-        if (register) {
+        if (mode == 1) {
             Field("Seu nome", name) { name = it }
             Row(Modifier.fillMaxWidth().clickable { isOng = !isOng }, verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(checked = isOng, onCheckedChange = { isOng = it })
@@ -175,15 +204,27 @@ fun AuthForm(vm: AppVM, compact: Boolean = false) {
                 )
             }
         }
-        Field("E-mail", email, kb = KeyboardType.Email) { email = it }
-        OutlinedTextField(
-            value = pass, onValueChange = { pass = it }, label = { Text("Senha (mín. 6 caracteres)") },
-            visualTransformation = if (showPass) VisualTransformation.None else PasswordVisualTransformation(),
-            singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp),
-            trailingIcon = { TextButton(onClick = { showPass = !showPass }) { Text(if (showPass) "Ocultar" else "Mostrar") } },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-        )
-        if (register) {
+
+        if (mode != 3) Field("E-mail", email, kb = KeyboardType.Email) { email = it }
+
+        if (mode == 3) {
+            Field("Código de 6 dígitos", code, kb = KeyboardType.Number) { code = it.filter { ch -> ch.isDigit() }.take(6) }
+        }
+        if (mode != 2) {
+            OutlinedTextField(
+                value = pass, onValueChange = { pass = it },
+                label = { Text(if (mode == 3) "Nova senha (mín. 6 caracteres)" else "Senha (mín. 6 caracteres)") },
+                visualTransformation = if (showPass) VisualTransformation.None else PasswordVisualTransformation(),
+                singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp),
+                trailingIcon = { TextButton(onClick = { showPass = !showPass }) { Text(if (showPass) "Ocultar" else "Mostrar") } },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+            )
+        }
+
+        if (mode == 0) {
+            TextButton(onClick = { mode = 2 }, modifier = Modifier.align(Alignment.End)) { Text("Esqueci minha senha") }
+        }
+        if (mode == 1) {
             Row(Modifier.fillMaxWidth().clickable { terms = !terms }, verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(checked = terms, onCheckedChange = { terms = it })
                 Text(
@@ -192,13 +233,35 @@ fun AuthForm(vm: AppVM, compact: Boolean = false) {
                 )
             }
         }
-        PrimaryButton(
-            if (vm.busy) "Aguarde…" else if (register) "Criar conta" else "Entrar",
-            enabled = !vm.busy && (!register || terms),
-            onClick = {
-                if (register) vm.register(name, email, pass, if (isOng) ongName.ifBlank { name } else null)
-                else vm.login(email, pass)
+
+        when (mode) {
+            2 -> {
+                PrimaryButton(
+                    if (vm.busy) "Aguarde…" else "Enviar código",
+                    enabled = !vm.busy && email.isNotBlank(),
+                    onClick = { vm.forgot(email) { code = ""; pass = ""; mode = 3 } }
+                )
+                TextButton(onClick = { mode = 0 }, modifier = Modifier.fillMaxWidth()) { Text("Voltar ao login") }
             }
-        )
+            3 -> {
+                PrimaryButton(
+                    if (vm.busy) "Aguarde…" else "Redefinir senha",
+                    enabled = !vm.busy && code.length == 6 && pass.length >= 6,
+                    onClick = { vm.reset(email, code, pass) }
+                )
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    TextButton(onClick = { vm.forgot(email) {} }, enabled = !vm.busy) { Text("Reenviar código") }
+                    TextButton(onClick = { mode = 0 }) { Text("Voltar ao login") }
+                }
+            }
+            else -> PrimaryButton(
+                if (vm.busy) "Aguarde…" else if (mode == 1) "Criar conta" else "Entrar",
+                enabled = !vm.busy && (mode == 0 || terms),
+                onClick = {
+                    if (mode == 1) vm.register(name, email, pass, if (isOng) ongName.ifBlank { name } else null)
+                    else vm.login(email, pass)
+                }
+            )
+        }
     }
 }

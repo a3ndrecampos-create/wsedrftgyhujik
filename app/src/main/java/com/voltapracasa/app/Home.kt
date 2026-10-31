@@ -24,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 
 private val TYPE_FILTERS: List<Pair<String, String?>> = listOf(
     "Todos" to null, "Perdidos" to "LOST", "Avistados" to "SIGHTING", "Encontrados" to "FOUND", "Adoção" to "ADOPTION"
@@ -38,15 +39,23 @@ private val NAV_TABS = listOf(
     NavTab("Mapa", Icons.Filled.Place),
     NavTab("Pets", Icons.AutoMirrored.Filled.List),
     NavTab("Adoção", Icons.Filled.Favorite),
+    NavTab("Conversas", ChatBubbleIcon),
     NavTab("Perfil", Icons.Filled.Person)
 )
 
 @Composable
-fun HomeScreen(vm: AppVM, onOpen: (String) -> Unit, onNew: (String) -> Unit, onNeedLogin: () -> Unit) {
+fun HomeScreen(vm: AppVM, onOpen: (String) -> Unit, onNew: (String) -> Unit, onNeedLogin: () -> Unit, onChat: (String) -> Unit) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var showMenu by remember { mutableStateOf(false) }
     var typeFilter by rememberSaveable { mutableStateOf<String?>(null) }
     var speciesFilter by rememberSaveable { mutableStateOf<String?>(null) }
+    val unread = vm.chats.sumOf { it.unread }
+    LaunchedEffect(vm.user?.id) {
+        while (vm.user != null) {
+            vm.loadChats()
+            delay(20000)
+        }
+    }
 
     val filtered = vm.posts.filter {
         (typeFilter == null || it.type == typeFilter) && (speciesFilter == null || it.species == speciesFilter)
@@ -55,7 +64,7 @@ fun HomeScreen(vm: AppVM, onOpen: (String) -> Unit, onNew: (String) -> Unit, onN
     Scaffold(
         topBar = {
             Column {
-                BrandHeader(onRefresh = { vm.refresh() })
+                BrandHeader(onRefresh = { vm.refresh(); vm.loadChats() })
                 SafetyBanner(compact = true)
             }
         },
@@ -64,7 +73,13 @@ fun HomeScreen(vm: AppVM, onOpen: (String) -> Unit, onNew: (String) -> Unit, onN
                 NAV_TABS.forEachIndexed { i, t ->
                     NavigationBarItem(
                         selected = tab == i, onClick = { tab = i },
-                        icon = { Icon(t.icon, contentDescription = null) },
+                        icon = {
+                            if (i == 3 && unread > 0) {
+                                BadgedBox(badge = { Badge { Text(unread.toString()) } }) { Icon(t.icon, contentDescription = null) }
+                            } else {
+                                Icon(t.icon, contentDescription = null)
+                            }
+                        },
                         label = { Text(t.label) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -150,6 +165,7 @@ fun HomeScreen(vm: AppVM, onOpen: (String) -> Unit, onNew: (String) -> Unit, onN
                         }
                     }
                 )
+                3 -> ChatsTab(vm, onChat)
                 else -> ProfileTab(vm, onOpen)
             }
         }

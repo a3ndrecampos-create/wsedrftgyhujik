@@ -28,7 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -84,16 +86,36 @@ fun BrandHeader(onRefresh: () -> Unit) {
 }
 
 @Composable
-fun ScreenBar(title: String, onBack: () -> Unit) {
+fun ScreenBar(title: String, onBack: () -> Unit, actions: @Composable RowScope.() -> Unit = {}) {
     Surface(color = Brand.Ink) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = Color.White)
             }
-            Text(title, style = MaterialTheme.typography.titleLarge, color = Color.White)
+            Text(
+                title, Modifier.weight(1f), style = MaterialTheme.typography.titleLarge, color = Color.White,
+                maxLines = 1, overflow = TextOverflow.Ellipsis
+            )
+            actions()
         }
     }
 }
+
+/** Ícone de balão de conversa (o pacote básico de ícones não traz um). */
+val ChatBubbleIcon: ImageVector = ImageVector.Builder(
+    name = "ChatBubble", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 24f, viewportHeight = 24f
+).path(fill = SolidColor(Color.Black)) {
+    moveTo(20f, 2f)
+    horizontalLineTo(4f)
+    curveTo(2.9f, 2f, 2f, 2.9f, 2f, 4f)
+    verticalLineTo(22f)
+    lineTo(6f, 18f)
+    horizontalLineTo(20f)
+    curveTo(21.1f, 18f, 22f, 17.1f, 22f, 16f)
+    verticalLineTo(4f)
+    curveTo(22f, 2.9f, 21.1f, 2f, 20f, 2f)
+    close()
+}.build()
 
 // ---------- blocos básicos ----------
 
@@ -212,10 +234,16 @@ fun PostCard(p: Post, onClick: () -> Unit) {
                 modifier = Modifier.fillMaxWidth().height(184.dp).background(MaterialTheme.colorScheme.surfaceVariant)
             )
             TypeBadge(p.type, onPhoto = true, modifier = Modifier.align(Alignment.TopStart).padding(12.dp))
-            if (p.status != "ACTIVE") {
+            val tag: Pair<String, Color>? = when {
+                p.review == "PENDING" -> "Em análise" to Color(0xFF8A5A00)
+                p.review == "REJECTED" -> "Recusado" to Color(0xFFB42328)
+                p.status != "ACTIVE" -> "Resolvido" to Color(0xFF1C7048)
+                else -> null
+            }
+            if (tag != null) {
                 Surface(Modifier.align(Alignment.TopEnd).padding(12.dp), color = Color.White, shape = RoundedCornerShape(8.dp)) {
                     Text(
-                        "Resolvido", color = Brand.Adoption, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold,
+                        tag.first, color = tag.second, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                     )
                 }
@@ -368,6 +396,7 @@ fun MapPickerDialog(initial: Pair<Double, Double>, onPick: (Double, Double) -> U
 
 private val SAFETY_TIPS = listOf(
     "Nunca pague para receber informação" to "Taxa, frete, PIX, depósito ou \"recompensa antecipada\" para dizer onde o pet está ou devolvê-lo é golpe. Quem encontrou de verdade não cobra.",
+    "Converse só pelo app" to "O chat do Volta Pra Casa registra a conversa para investigar golpes. Desconfie de quem insiste em ir para WhatsApp, telefone ou links externos.",
     "Não envie códigos nem dados" to "Nunca passe códigos recebidos por SMS ou WhatsApp, senhas, CPF ou dados de cartão. É assim que clonam contas.",
     "Peça uma prova" to "Peça uma foto ou vídeo do pet no momento e confira detalhes que só o dono conhece, sem contar tudo antes.",
     "Encontro em local seguro" to "Combine em local público e movimentado, de preferência de dia e acompanhado. Se houver recompensa, só entregue depois de ter o pet de volta em mãos.",

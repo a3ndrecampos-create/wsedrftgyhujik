@@ -31,6 +31,7 @@ sealed interface Screen {
     data object Auth : Screen
     data class Detail(val id: String) : Screen
     data class New(val type: String) : Screen
+    data class Chat(val id: String) : Screen
 }
 
 class MainActivity : ComponentActivity() {
@@ -82,7 +83,8 @@ fun AppRoot(vm: AppVM) {
                 vm = vm,
                 onOpen = { stack.add(Screen.Detail(it)) },
                 onNew = { stack.add(Screen.New(it)) },
-                onNeedLogin = { vm.message = "Entre na sua conta para publicar."; stack.add(Screen.Auth) }
+                onNeedLogin = { vm.message = "Entre na sua conta para publicar."; stack.add(Screen.Auth) },
+                onChat = { stack.add(Screen.Chat(it)) }
             )
             Screen.Auth -> {
                 LaunchedEffect(vm.user) { if (vm.user != null) pop() }
@@ -91,7 +93,12 @@ fun AppRoot(vm: AppVM) {
                     Box(Modifier.weight(1f)) { AuthForm(vm) }
                 }
             }
-            is Screen.Detail -> DetailScreen(vm, s.id, onBack = { pop() }, onOpen = { stack.add(Screen.Detail(it)) })
+            is Screen.Detail -> DetailScreen(
+                vm, s.id, onBack = { pop() },
+                onOpen = { stack.add(Screen.Detail(it)) },
+                onChat = { stack.add(Screen.Chat(it)) }
+            )
+            is Screen.Chat -> ChatScreen(vm, s.id, onBack = { pop() }, onOpenPost = { stack.add(Screen.Detail(it)) })
             is Screen.New -> NewPostScreen(vm, s.type, onBack = { pop() }, onDone = { id ->
                 stack.clear()
                 stack.add(Screen.Detail(id))

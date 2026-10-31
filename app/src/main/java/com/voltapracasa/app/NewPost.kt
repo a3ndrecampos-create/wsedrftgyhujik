@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
@@ -54,7 +55,6 @@ fun NewPostScreen(vm: AppVM, initialType: String, onBack: () -> Unit, onDone: (S
     var size by rememberSaveable { mutableStateOf("") }
     var sex by rememberSaveable { mutableStateOf("") }
     var desc by rememberSaveable { mutableStateOf("") }
-    var phone by rememberSaveable { mutableStateOf("") }
     var address by rememberSaveable { mutableStateOf("") }
     var photoUri by rememberSaveable { mutableStateOf<Uri?>(null) }
     var camUri by rememberSaveable { mutableStateOf<Uri?>(null) }
@@ -105,6 +105,20 @@ fun NewPostScreen(vm: AppVM, initialType: String, onBack: () -> Unit, onDone: (S
                 }
             }
 
+            val level = vm.user?.level ?: 1
+            if (level < 3) {
+                Surface(shape = RoundedCornerShape(14.dp), color = MaterialTheme.colorScheme.secondaryContainer) {
+                    Row(Modifier.padding(14.dp), verticalAlignment = Alignment.Top) {
+                        Icon(Icons.Filled.Info, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(10.dp))
+                        Text(
+                            "Nível $level de 3: a equipe confere a foto antes de o anúncio ir ao ar, para evitar fotos falsas. A partir do nível 3, a publicação é imediata.",
+                            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
+                }
+            }
+
             Box(
                 Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(18.dp)).background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
@@ -135,8 +149,11 @@ fun NewPostScreen(vm: AppVM, initialType: String, onBack: () -> Unit, onDone: (S
             FilterRow(listOf("Não sei" to "", "Macho" to "M", "Fêmea" to "F"), sex, horizontalPadding = 0.dp) { sex = it }
             Field("Detalhes (coleira, manchas, comportamento...)", desc, lines = 3) { desc = it }
 
-            SectionTitle("Contato e local")
-            Field("Seu WhatsApp com DDD (visível só para usuários logados)", phone, kb = KeyboardType.Phone) { phone = it }
+            SectionTitle("Local")
+            Text(
+                "Quem se interessar fala com você pelo chat do app. Seu telefone não aparece para ninguém.",
+                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Field("Referência do local (rua, bairro)", address) { address = it }
 
             val c = coords
@@ -186,7 +203,7 @@ fun NewPostScreen(vm: AppVM, initialType: String, onBack: () -> Unit, onDone: (S
                             uri,
                             mapOf(
                                 "type" to type, "species" to species, "name" to name, "color" to color, "size" to size, "sex" to sex,
-                                "description" to desc, "contactPhone" to phone, "address" to address,
+                                "description" to desc, "address" to address,
                                 "lat" to loc.first.toString(), "lng" to loc.second.toString()
                             )
                         ) { p -> if (p != null) onDone(p.id) }

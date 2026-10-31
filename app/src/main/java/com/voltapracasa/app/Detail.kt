@@ -47,7 +47,7 @@ private fun RoundIconButton(icon: ImageVector, description: String, onClick: () 
 }
 
 @Composable
-fun DetailScreen(vm: AppVM, id: String, onBack: () -> Unit, onOpen: (String) -> Unit) {
+fun DetailScreen(vm: AppVM, id: String, onBack: () -> Unit, onOpen: (String) -> Unit, onChat: (String) -> Unit) {
     val ctx = LocalContext.current
     var post by remember(id) { mutableStateOf<Post?>(null) }
     var matches by remember(id) { mutableStateOf<List<MatchItem>>(emptyList()) }
@@ -110,6 +110,30 @@ fun DetailScreen(vm: AppVM, id: String, onBack: () -> Unit, onOpen: (String) -> 
                     Modifier.padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 40.dp),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
+                    if (mine && p.review == "PENDING") {
+                        Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.secondaryContainer) {
+                            Row(Modifier.padding(12.dp), verticalAlignment = Alignment.Top) {
+                                Icon(Icons.Filled.Info, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                                Spacer(Modifier.width(10.dp))
+                                Text(
+                                    "Em análise: a equipe confere a foto antes de o anúncio ir ao ar, para evitar fotos falsas. Quando for aprovado, ele aparece para todos.",
+                                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                            }
+                        }
+                    }
+                    if (mine && p.review == "REJECTED") {
+                        Surface(shape = RoundedCornerShape(12.dp), color = Brand.Lost.copy(alpha = 0.12f)) {
+                            Row(Modifier.padding(12.dp), verticalAlignment = Alignment.Top) {
+                                Icon(Icons.Filled.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                                Spacer(Modifier.width(10.dp))
+                                Text(
+                                    if (p.reviewNote.isBlank()) "Anúncio recusado pela verificação de foto." else "Anúncio recusado: ${p.reviewNote}",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+                    }
                     if (p.status != "ACTIVE") {
                         val note = p.resolvedNote.trim('(', ')')
                         Surface(shape = RoundedCornerShape(12.dp), color = Brand.Adoption.copy(alpha = 0.14f)) {
@@ -153,40 +177,37 @@ fun DetailScreen(vm: AppVM, id: String, onBack: () -> Unit, onOpen: (String) -> 
 
                     SafetyBanner()
 
-                    val hasPhone = p.contactPhone.isNotBlank()
-                    if (hasPhone) {
-                        val digits = p.contactPhone.filter { it.isDigit() }.let { if (it.length in 10..11) "55$it" else it }
+                    val canChat = p.review == "APPROVED" && p.status == "ACTIVE" && !mine
+                    if (canChat && vm.user != null) {
                         PrimaryButton(
-                            "Chamar no WhatsApp", icon = Icons.AutoMirrored.Filled.Send,
-                            onClick = { safeStart(Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/$digits"))) }
+                            "Conversar pelo app", icon = Icons.AutoMirrored.Filled.Send, enabled = !vm.busy,
+                            onClick = { vm.openChat(p.id) { chatId -> onChat(chatId) } }
                         )
-                    } else if (vm.user == null) {
+                        Text(
+                            "A conversa fica registrada no app para sua segurança e é apagada em 7 dias ou quando a entrega for concluída.",
+                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    } else if (canChat) {
                         Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.secondaryContainer) {
                             Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Filled.Info, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
                                 Spacer(Modifier.width(10.dp))
                                 Text(
-                                    "Entre na sua conta (aba Perfil) para ver o contato.",
+                                    "Entre na sua conta (aba Perfil) para conversar com quem publicou.",
                                     style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             }
                         }
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        if (hasPhone) {
-                            SecondaryButton(
-                                "Ligar", icon = Icons.Filled.Call, modifier = Modifier.weight(1f),
-                                onClick = { safeStart(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${p.contactPhone}"))) }
-                            )
+                    SecondaryButton(
+                        "Ver rota", icon = Icons.Filled.Place,
+                        onClick = {
+                            safeStart(Intent(Intent.ACTION_VIEW, Uri.parse("geo:${p.lat},${p.lng}?q=${p.lat},${p.lng}(${Uri.encode(p.title())})")))
                         }
-                        SecondaryButton(
-                            "Ver rota", icon = Icons.Filled.Place, modifier = Modifier.weight(1f),
-                            onClick = {
-                                safeStart(Intent(Intent.ACTION_VIEW, Uri.parse("geo:${p.lat},${p.lng}?q=${p.lat},${p.lng}(${Uri.encode(p.title())})")))
-                            }
-                        )
+                    )
+                    if (p.review == "APPROVED") {
+                        SecondaryButton("Compartilhar e ajudar a divulgar", icon = Icons.Filled.Share, onClick = { share() })
                     }
-                    SecondaryButton("Compartilhar e ajudar a divulgar", icon = Icons.Filled.Share, onClick = { share() })
 
                     if (matches.isNotEmpty()) {
                         Spacer(Modifier.height(6.dp))
@@ -225,7 +246,7 @@ fun DetailScreen(vm: AppVM, id: String, onBack: () -> Unit, onOpen: (String) -> 
 
         Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
             RoundIconButton(Icons.AutoMirrored.Filled.ArrowBack, "Voltar", onBack)
-            RoundIconButton(Icons.Filled.Share, "Compartilhar") { share() }
+            if (p.review == "APPROVED") RoundIconButton(Icons.Filled.Share, "Compartilhar") { share() }
         }
     }
 

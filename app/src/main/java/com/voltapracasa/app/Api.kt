@@ -16,6 +16,14 @@ interface PetApi {
     @POST("api/auth/register") suspend fun register(@Body b: RegisterBody): AuthResponse
     @POST("api/auth/login") suspend fun login(@Body b: LoginBody): AuthResponse
     @GET("api/me") suspend fun me(): User
+    @POST("api/auth/forgot") suspend fun forgot(@Body b: ForgotBody): OkResp
+    @POST("api/auth/reset") suspend fun reset(@Body b: ResetBody): AuthResponse
+
+    @POST("api/chats") suspend fun openChat(@Body b: OpenChatBody): ChatSummary
+    @GET("api/chats") suspend fun chats(): List<ChatSummary>
+    @GET("api/chats/{id}/messages") suspend fun chatMessages(@Path("id") id: String): ChatThread
+    @POST("api/chats/{id}/messages") suspend fun sendChat(@Path("id") id: String, @Body b: SendBody): ChatMessage
+    @POST("api/chats/{id}/report") suspend fun reportChat(@Path("id") id: String, @Body b: ReportBody): OkResp
 
     @GET("api/posts")
     suspend fun posts(
